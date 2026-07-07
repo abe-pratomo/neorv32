@@ -48,6 +48,8 @@ entity neorv32_cpu_alu is
     -- data input --
     rs1_i  : in  std_ulogic_vector(31 downto 0); -- register source 1
     rs2_i  : in  std_ulogic_vector(31 downto 0); -- register source 2
+    -- user-defined data input (LSU memory read data) --
+    rdata_i: in  std_ulogic_vector(31 downto 0); -- LSU memory read data
     -- data output --
     cmp_o  : out std_ulogic_vector(1 downto 0);  -- comparator status
     res_o  : out std_ulogic_vector(31 downto 0); -- ALU result
@@ -282,6 +284,8 @@ begin
       inst_i   => cfu_inst,          -- instruction word
       rs1_i    => rs1_i,             -- register source 1
       rs2_i    => rs2_i,             -- register source 2
+      -- user-defined request (LSU memory read data) --
+      rdata_i  => rdata_i,           -- LSU memory read data
       -- response --
       result_o => cfu_res,           -- operation result
       valid_o  => cfu_done           -- result valid, operation done

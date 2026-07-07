@@ -28,6 +28,8 @@ entity neorv32_cpu_alu_cfu is
     inst_i   : in  std_ulogic_vector(31 downto 0); -- full instruction word
     rs1_i    : in  std_ulogic_vector(31 downto 0); -- register source operand 1
     rs2_i    : in  std_ulogic_vector(31 downto 0); -- register source operand 2
+    -- user-defined request (LSU memory read data) --
+    rdata_i  : in  std_ulogic_vector(31 downto 0); -- LSU memory read data
     -- response --
     result_o : out std_ulogic_vector(31 downto 0); -- operation result
     valid_o  : out std_ulogic                      -- operation done; result valid
