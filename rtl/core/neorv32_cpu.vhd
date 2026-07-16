@@ -444,8 +444,9 @@ begin
     -- data input --
     rs1_i  => rs1,        -- rf source 1
     rs2_i  => rs2,        -- rf source 2
-    -- user-defined data input (LSU memory read data) --
-    rdata_i => lsu_rdata, -- LSU memory read data
+    -- user-defined data input (LSU memory read data and wait signal) --
+    lsu_rdata_i => lsu_rdata, -- LSU memory read data
+    lsu_wait_i  => lsu_wait,  -- LSU wait signal
     -- data output --
     cmp_o  => alu_cmp,    -- comparator status
     res_o  => alu_res,    -- ALU result
