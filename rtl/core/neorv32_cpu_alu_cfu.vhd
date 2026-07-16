@@ -219,8 +219,8 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
   signal opcode : std_ulogic_vector(6 downto 0); -- instruction opcode
   signal funct3 : std_ulogic_vector(2 downto 0); -- instruction type field
 
-  -- instruction valid signal --
-  signal valid : std_ulogic; -- valid CFU instruction
+  -- EXP valid signal --
+  signal exp_valid : std_ulogic; -- valid EXP instruction
 
   -- LSU valid register --
   signal lsu_valid : std_ulogic; -- LSU memory read data valid signal
