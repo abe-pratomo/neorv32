@@ -50,6 +50,7 @@ entity neorv32_top is
     RISCV_ISA_Zbkx      : boolean                        := false;         -- cryptography crossbar permutation extension
     RISCV_ISA_Zbs       : boolean                        := false;         -- single-bit bit-manipulation extension
     RISCV_ISA_Zcb       : boolean                        := false;         -- additional code size reduction instructions
+    RISCV_ISA_Zcmop     : boolean                        := false;         -- compressed may-be-operations
     RISCV_ISA_Zfinx     : boolean                        := false;         -- 32-bit floating-point extension
     RISCV_ISA_Zibi      : boolean                        := false;         -- branch with immediate
     RISCV_ISA_Zicntr    : boolean                        := false;         -- base counters
@@ -449,13 +450,13 @@ begin
     assert not (DUAL_CORE_EN and (not IO_CLINT_EN)) report
       "[NEORV32] SMP dual-core configuration requires the CLINT!" severity error;
 
-    -- custom IMEM adress --
+    -- custom IMEM address --
     assert not (IMEM_EN and (IMEM_BASE /= x"00000000")) report
       "[NEORV32] Using non-default IMEM base address. Configure SW framework accordingly." severity warning;
     assert (or_reduce_f(IMEM_BASE(index_size_f(imem_size_c)-1 downto 0)) = '0') report
       "[NEORV32] IMEM base address has to be naturally aligned to its size!" severity error;
 
-    -- custom DMEM adress --
+    -- custom DMEM address --
     assert not (DMEM_EN and (DMEM_BASE /= x"80000000")) report
       "[NEORV32] Using non-default DMEM base address. Configure SW framework accordingly." severity warning;
     assert (or_reduce_f(DMEM_BASE(index_size_f(dmem_size_c)-1 downto 0)) = '0') report
@@ -549,6 +550,7 @@ begin
       RISCV_ISA_Zbkx      => RISCV_ISA_Zbkx,
       RISCV_ISA_Zbs       => RISCV_ISA_Zbs,
       RISCV_ISA_Zcb       => RISCV_ISA_Zcb,
+      RISCV_ISA_Zcmop     => RISCV_ISA_Zcmop,
       RISCV_ISA_Zfinx     => RISCV_ISA_Zfinx,
       RISCV_ISA_Zibi      => RISCV_ISA_Zibi,
       RISCV_ISA_Zicntr    => RISCV_ISA_Zicntr,
@@ -846,10 +848,14 @@ begin
     B_EN    => DMEM_EN,
     B_BASE  => DMEM_BASE,
     B_SIZE  => dmem_size_c,
-    -- port C: IO --
-    C_EN    => true,
-    C_BASE  => mem_io_base_c,
-    C_SIZE  => mem_io_size_c,
+    -- port C: reserved --
+    C_EN    => false,
+    C_BASE  => (others => '0'),
+    C_SIZE  => 4,
+    -- port D: IO --
+    D_EN    => true,
+    D_BASE  => mem_io_base_c,
+    D_SIZE  => mem_io_size_c,
     -- port X (the void): XBUS --
     X_EN    => XBUS_EN
   )
@@ -866,8 +872,10 @@ begin
     a_rsp_i => imem_rsp,
     b_req_o => dmem_req,
     b_rsp_i => dmem_rsp,
-    c_req_o => io_req,
-    c_rsp_i => io_rsp,
+    c_req_o => open,            -- reserved
+    c_rsp_i => rsp_terminate_c, -- reserved
+    d_req_o => io_req,
+    d_rsp_i => io_rsp,
     x_req_o => xbus_req,
     x_rsp_i => xbus_rsp
   );
