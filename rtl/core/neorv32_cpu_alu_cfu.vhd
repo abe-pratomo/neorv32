@@ -178,7 +178,7 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
       variable found    : boolean;
   begin
       if x <= EXP_MIN_INPUT then
-          return (others => '0');
+          return x"00000000";
       elsif x >= EXP_MAX_INPUT then
           return x"7FFFFFFF";
       else
@@ -200,7 +200,7 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
           result64 := shift_right(mult, 16) + b;
 
           if result64 <= 0 then
-              return (others => '0');
+              return x"00000000";
           elsif result64 >= INT32_MAX then
               return x"7FFFFFFF";
           else
