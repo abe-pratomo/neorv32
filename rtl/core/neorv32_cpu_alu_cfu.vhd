@@ -229,7 +229,7 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
   type annx_t is record
     opa     : std_ulogic_vector(31 downto 0); -- input operand a
     opb     : std_ulogic_vector(31 downto 0); -- input operand b
-    mul     : std_ulogic_vector(63 downto 0); -- intermediate multiplication result
+    mul     : signed(63 downto 0);            -- intermediate multiplication result
     res     : std_ulogic_vector(31 downto 0); -- operation result
   end record;
   signal annx : annx_t;
