@@ -531,7 +531,7 @@ begin
   ctrl_o.lsu_rd       <= ctrl.lsu_rd;
   ctrl_o.lsu_wr       <= ctrl.lsu_wr;
   ctrl_o.lsu_mo_en    <= '1' when (exec.state = S_MEM_REQ) else
-                         '1' when (exec.state = S_ALU_WAIT) and (opcode_v = opcode_cust0_c) and ((funct3_v = "000") or (funct3_v = "001")) else
+                         '1' when (exec.state = S_ALU_WAIT) and (exec.ir(instr_opcode_msb_c downto instr_opcode_lsb_c) = opcode_cust0_c) and ((exec.ir(instr_funct3_msb_c downto instr_funct3_lsb_c) = "000") or (exec.ir(instr_funct3_msb_c downto instr_funct3_lsb_c) = "001")) else
                          '0';
   ctrl_o.lsu_mi_en    <= '1' when (exec.state = S_MEM_RSP) else '0'; -- write memory input registers
   ctrl_o.lsu_priv     <= csr.mstatus_mpp when (csr.mstatus_mprv = '1') else csr.prv_level; -- effective privilege level for loads/stores in M-mode
