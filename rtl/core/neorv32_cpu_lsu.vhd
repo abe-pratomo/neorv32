@@ -109,23 +109,23 @@ begin
         req.meta <= std_ulogic_vector(to_unsigned(HART_ID, 2)) & ctrl_i.cpu_debug & ctrl_i.lsu_priv & '0';
         req.addr <= addr_i; -- memory address register
         if ((ctrl_i.ir_opcode /= opcode_cust0_c) or ((ctrl_i.ir_funct3 /= "000") and (ctrl_i.ir_funct3 /= "001"))) then
-        case ctrl_i.ir_funct3(1 downto 0) is -- alignment + byte-enable
-          when "00" => -- byte
-            req.data   <= wdata_i(7 downto 0) & wdata_i(7 downto 0) & wdata_i(7 downto 0) & wdata_i(7 downto 0);
-            req.ben(0) <= (not addr_i(1)) and (not addr_i(0));
-            req.ben(1) <= (not addr_i(1)) and (    addr_i(0));
-            req.ben(2) <= (    addr_i(1)) and (not addr_i(0));
-            req.ben(3) <= (    addr_i(1)) and (    addr_i(0));
-            misalign   <= '0';
-          when "01" => -- half-word
-            req.data <= wdata_i(15 downto 0) & wdata_i(15 downto 0);
-            req.ben  <= addr_i(1) & addr_i(1) & (not addr_i(1)) & (not addr_i(1));
-            misalign <= addr_i(0);
-          when others => -- word
-            req.data <= wdata_i;
-            req.ben  <= (others => '1');
-            misalign <= addr_i(1) or addr_i(0);
-        end case;
+          case ctrl_i.ir_funct3(1 downto 0) is -- alignment + byte-enable
+            when "00" => -- byte
+              req.data   <= wdata_i(7 downto 0) & wdata_i(7 downto 0) & wdata_i(7 downto 0) & wdata_i(7 downto 0);
+              req.ben(0) <= (not addr_i(1)) and (not addr_i(0));
+              req.ben(1) <= (not addr_i(1)) and (    addr_i(0));
+              req.ben(2) <= (    addr_i(1)) and (not addr_i(0));
+              req.ben(3) <= (    addr_i(1)) and (    addr_i(0));
+              misalign   <= '0';
+            when "01" => -- half-word
+              req.data <= wdata_i(15 downto 0) & wdata_i(15 downto 0);
+              req.ben  <= addr_i(1) & addr_i(1) & (not addr_i(1)) & (not addr_i(1));
+              misalign <= addr_i(0);
+            when others => -- word
+              req.data <= wdata_i;
+              req.ben  <= (others => '1');
+              misalign <= addr_i(1) or addr_i(0);
+          end case;
         else -- LWA/LWM
           req.data <= (others => '0');
           req.ben  <= (others => '1');
@@ -156,24 +156,24 @@ begin
       rdata_o <= (others => '0'); -- output zero if there is no pending memory request
       if (ctrl_i.lsu_mi_en = '1') then
         if ((ctrl_i.ir_opcode /= opcode_cust0_c) or ((ctrl_i.ir_funct3 /= "000") and (ctrl_i.ir_funct3 /= "001"))) then
-        case ctrl_i.ir_funct3(1 downto 0) is
-          when "00" => -- byte
-            case req.addr(1 downto 0) is
-              when "00"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(7),  24) & dbus_rsp_i.data(7 downto 0);
-              when "01"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(15), 24) & dbus_rsp_i.data(15 downto 8);
-              when "10"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(23), 24) & dbus_rsp_i.data(23 downto 16);
-              when "11"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(31), 24) & dbus_rsp_i.data(31 downto 24);
-              when others => rdata_o <= (others => 'X');
-            end case;
-          when "01" => -- half-word
-            if (req.addr(1) = '0') then
-              rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(15), 16) & dbus_rsp_i.data(15 downto 0);
-            else
-              rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(31), 16) & dbus_rsp_i.data(31 downto 16);
-            end if;
-          when others => -- word
-            rdata_o <= dbus_rsp_i.data;
-        end case;
+          case ctrl_i.ir_funct3(1 downto 0) is
+            when "00" => -- byte
+              case req.addr(1 downto 0) is
+                when "00"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(7),  24) & dbus_rsp_i.data(7 downto 0);
+                when "01"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(15), 24) & dbus_rsp_i.data(15 downto 8);
+                when "10"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(23), 24) & dbus_rsp_i.data(23 downto 16);
+                when "11"   => rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(31), 24) & dbus_rsp_i.data(31 downto 24);
+                when others => rdata_o <= (others => 'X');
+              end case;
+            when "01" => -- half-word
+              if (req.addr(1) = '0') then
+                rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(15), 16) & dbus_rsp_i.data(15 downto 0);
+              else
+                rdata_o <= replicate_f((not ctrl_i.ir_funct3(2)) and dbus_rsp_i.data(31), 16) & dbus_rsp_i.data(31 downto 16);
+              end if;
+            when others => -- word
+              rdata_o <= dbus_rsp_i.data;
+          end case;
         else -- LWA/LWM
           rdata_o <= dbus_rsp_i.data;
         end if;

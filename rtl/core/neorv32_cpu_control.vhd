@@ -466,7 +466,7 @@ begin
               exec_nxt.state <= S_DISPATCH;
           end if;
         elsif (lsu_wait_i = '0') or (or_reduce_f(trap.exc_buf(exc_laccess_c downto exc_salign_c)) = '1') then
-            ctrl_nxt.rf_wb_en <= ctrl.lsu_rd;
+          ctrl_nxt.rf_wb_en <= ctrl.lsu_rd;
           exec_nxt.state    <= S_DISPATCH;
         end if;
 
