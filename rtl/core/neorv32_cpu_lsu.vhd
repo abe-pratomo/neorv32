@@ -108,6 +108,7 @@ begin
       if (ctrl_i.lsu_mo_en = '1') then
         req.meta <= std_ulogic_vector(to_unsigned(HART_ID, 2)) & ctrl_i.cpu_debug & ctrl_i.lsu_priv & '0';
         req.addr <= addr_i; -- memory address register
+        if ((ctrl_i.ir_opcode /= opcode_cust0_c) or ((ctrl_i.ir_funct3 /= "000") and (ctrl_i.ir_funct3 /= "001"))) then
         case ctrl_i.ir_funct3(1 downto 0) is -- alignment + byte-enable
           when "00" => -- byte
             req.data   <= wdata_i(7 downto 0) & wdata_i(7 downto 0) & wdata_i(7 downto 0) & wdata_i(7 downto 0);
@@ -125,6 +126,11 @@ begin
             req.ben  <= (others => '1');
             misalign <= addr_i(1) or addr_i(0);
         end case;
+        else -- LWA/LWM
+          req.data <= (others => '0');
+          req.ben  <= (others => '1');
+          misalign <= addr_i(1) or addr_i(0);
+        end if;
         if AMO_EN and (ctrl_i.ir_opcode(2) = '1') and (ctrl_i.ir_funct12(8) = '0') then
           req.rw <= '0'; -- atomic read-modify-write operations are modified load requests
         else
@@ -149,6 +155,7 @@ begin
     elsif rising_edge(clk_i) then
       rdata_o <= (others => '0'); -- output zero if there is no pending memory request
       if (ctrl_i.lsu_mi_en = '1') then
+        if ((ctrl_i.ir_opcode /= opcode_cust0_c) or ((ctrl_i.ir_funct3 /= "000") and (ctrl_i.ir_funct3 /= "001"))) then
         case ctrl_i.ir_funct3(1 downto 0) is
           when "00" => -- byte
             case req.addr(1 downto 0) is
@@ -167,6 +174,9 @@ begin
           when others => -- word
             rdata_o <= dbus_rsp_i.data;
         end case;
+        else -- LWA/LWM
+          rdata_o <= dbus_rsp_i.data;
+        end if;
       end if;
     end if;
   end process mem_di_reg;

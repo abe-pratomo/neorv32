@@ -244,6 +244,7 @@ begin
            opcode_auipc_c  => ctrl_nxt.alu_imm <= exec.ir(31 downto 12) & x"000"; -- U-type
       when opcode_jal_c    => ctrl_nxt.alu_imm <= replicate_f(exec.ir(31), 12) & exec.ir(19 downto 12) & exec.ir(20) & exec.ir(30 downto 21) & '0'; -- J-type
       when opcode_amo_c    => ctrl_nxt.alu_imm <= (others => '0'); -- atomic memory access
+      when opcode_cust0_c  => ctrl_nxt.alu_imm <= replicate_f(exec.ir(31), 24) & exec.ir(30 downto 25) & "00"; -- ANNX-type (only used for LWA & LWM, ignored for EXP)
       when others          => ctrl_nxt.alu_imm <= replicate_f(exec.ir(31), 21) & exec.ir(30 downto 21) & exec.ir(20); -- I-type
     end case;
 
@@ -406,6 +407,10 @@ begin
           -- CFU: custom / extended RISC-V instructions --
           when opcode_cust0_c | opcode_cust1_c | opcode_op32_c | opcode_op32i_c =>
             ctrl_nxt.alu_cp_cfu <= '1';
+            if (opcode_v = opcode_cust0_c) and ((funct3_v = "000") or (funct3_v = "001")) then -- LWA/LWM
+              ctrl_nxt.lsu_rd <= '1'; -- read from memory
+              ctrl_nxt.lsu_wr <= '0';
+            end if;
             exec_nxt.state      <= S_ALU_WAIT; -- will be aborted by monitor timeout if CFU is not implemented
 
           -- environment/CSR operation or ILLEGAL opcode --
@@ -423,6 +428,10 @@ begin
         ctrl_nxt.rf_wb_en <= alu_cp_done_i; -- valid RF write-back (won't happen if exception)
         if (alu_cp_done_i = '1') or (or_reduce_f(trap.exc_buf(exc_ialign_c downto exc_iaccess_c)) = '1') then
           exec_nxt.state <= S_DISPATCH;
+        end if;
+        if (opcode_v = opcode_cust0_c) and ((funct3_v = "000") or (funct3_v = "001")) then
+            ctrl_nxt.lsu_req <= '1'; -- trigger LSU memory request
+            exec_nxt.state   <= S_MEM_RSP;
         end if;
 
       when S_BRANCH => -- update next-PC on taken branches and jumps
@@ -449,8 +458,15 @@ begin
 
       when S_MEM_RSP => -- wait for memory response
       -- ------------------------------------------------------------
-        if (lsu_wait_i = '0') or (or_reduce_f(trap.exc_buf(exc_laccess_c downto exc_salign_c)) = '1') then -- bus response or load/store exception
-          ctrl_nxt.rf_wb_en <= ctrl.lsu_rd; -- write to RF if read operation (won't happen in case of exception)
+        if (opcode_v = opcode_cust0_c) and ((funct3_v = "000") or (funct3_v = "001")) then
+          -- LWA/LWM: wait for CFU to complete (uses alu_cp_done_i)
+          ctrl_nxt.alu_op   <= alu_op_cp_c;
+          ctrl_nxt.rf_wb_en <= alu_cp_done_i;
+          if (alu_cp_done_i = '1') or (or_reduce_f(trap.exc_buf(exc_laccess_c downto exc_salign_c)) = '1') then
+              exec_nxt.state <= S_DISPATCH;
+          end if;
+        elsif (lsu_wait_i = '0') or (or_reduce_f(trap.exc_buf(exc_laccess_c downto exc_salign_c)) = '1') then
+            ctrl_nxt.rf_wb_en <= ctrl.lsu_rd;
           exec_nxt.state    <= S_DISPATCH;
         end if;
 
@@ -514,7 +530,9 @@ begin
   ctrl_o.lsu_req      <= ctrl.lsu_req;
   ctrl_o.lsu_rd       <= ctrl.lsu_rd;
   ctrl_o.lsu_wr       <= ctrl.lsu_wr;
-  ctrl_o.lsu_mo_en    <= '1' when (exec.state = S_MEM_REQ) else '0'; -- write memory output registers
+  ctrl_o.lsu_mo_en    <= '1' when (exec.state = S_MEM_REQ) else
+                         '1' when (exec.state = S_ALU_WAIT) and (opcode_v = opcode_cust0_c) and ((funct3_v = "000") or (funct3_v = "001")) else
+                         '0';
   ctrl_o.lsu_mi_en    <= '1' when (exec.state = S_MEM_RSP) else '0'; -- write memory input registers
   ctrl_o.lsu_priv     <= csr.mstatus_mpp when (csr.mstatus_mprv = '1') else csr.prv_level; -- effective privilege level for loads/stores in M-mode
   ctrl_o.lsu_fence    <= ctrl.lsu_fence;
