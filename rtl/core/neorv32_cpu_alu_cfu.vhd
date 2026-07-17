@@ -268,7 +268,11 @@ begin
     if (rstn_i = '0') then
       lsu_valid   <= '0';
     elsif rising_edge(clk_i) then
-      lsu_valid   <= not lsu_wait_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else '0'; -- assert one cycle after lsu_wait_i is low for LWA/LWM instructions
+      if ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) then
+        lsu_valid   <= not lsu_wait_i; -- assert one cycle after lsu_wait_i is low for LWA/LWM instructions
+      else
+        lsu_valid   <= '0';
+      end if;
     end if;
   end process;
 
