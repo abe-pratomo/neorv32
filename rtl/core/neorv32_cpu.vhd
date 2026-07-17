@@ -413,7 +413,8 @@ begin
   );
 
   -- all buses are zero unless there is an according operation --
-  rf_wdata <= alu_res or (lsu_rdata when (ctrl.ir_opcode /= opcode_cust0_c) else '0') or csr_rdata or ctrl.pc_ret;
+  rf_wdata <= alu_res or lsu_rdata or csr_rdata or ctrl.pc_ret when ((ctrl_i.ir_opcode /= opcode_cust0_c) or ((ctrl_i.ir_funct3 /= "000") and (ctrl_i.ir_funct3 /= "001"))) else
+              alu_res or csr_rdata or ctrl.pc_ret;
 
 
   -- Arithmetic/Logic Unit (ALU) and ALU Co-Processors --------------------------------------

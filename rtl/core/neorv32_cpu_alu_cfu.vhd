@@ -229,6 +229,7 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
   type annx_t is record
     opa     : std_ulogic_vector(31 downto 0); -- input operand a
     opb     : std_ulogic_vector(31 downto 0); -- input operand b
+    mul     : std_ulogic_vector(63 downto 0); -- intermediate multiplication result
     res     : std_ulogic_vector(31 downto 0); -- operation result
   end record;
   signal annx : annx_t;
@@ -248,9 +249,10 @@ begin
               (others => '0');
   annx.opb <= rs2_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else  -- select rs2 for LWA/LWM
               (others => '0');
-  annx.res <= std_ulogic_vector(signed(annx.opa) + signed(annx.opb))                  when ((opcode = opcode_custom0_c) and (funct3 = lwa_c)) else
-              std_ulogic_vector((signed(annx.opa) * signed(annx.opb))(47 downto 16))  when ((opcode = opcode_custom0_c) and (funct3 = lwm_c)) else
-              std_ulogic_vector(exp_pwl(signed(annx.opa)))                            when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else
+  annx.mul <= signed(annx.opa) * signed(annx.opb);
+  annx.res <= std_ulogic_vector(signed(annx.opa) + signed(annx.opb))  when ((opcode = opcode_custom0_c) and (funct3 = lwa_c)) else
+              std_ulogic_vector(annx.mul(47 downto 16))               when ((opcode = opcode_custom0_c) and (funct3 = lwm_c)) else
+              std_ulogic_vector(exp_pwl(signed(annx.opa)))            when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else
               (others => '0');
 
 
