@@ -136,7 +136,8 @@ int main() {
         int32_t p4 = annx_lwm(wbase, inputs[4], 4);
 
         int32_t sum = p0 + p1 + p2 + p3 + p4;
-        h1_outputs[i] = sigmoid_q16(sum);
+        // h1_outputs[i] = sigmoid_q16(sum);
+        h1_outputs[i] = (int32_t)sum;
     }
 
     // --------------------------------------------------------
@@ -153,7 +154,8 @@ int main() {
         int32_t p5 = annx_lwm(wbase, h1_outputs[5], 5);
 
         int32_t sum = p0 + p1 + p2 + p3 + p4 + p5;
-        h2_outputs[i] = sigmoid_q16(sum);
+        // h2_outputs[i] = sigmoid_q16(sum);
+        h2_outputs[i] = (int32_t)sum;
     }
 
     // --------------------------------------------------------
@@ -170,7 +172,8 @@ int main() {
         int32_t p5 = annx_lwm(wbase, h2_outputs[5], 5);
 
         int32_t sum = p0 + p1 + p2 + p3 + p4 + p5;
-        outputs[i] = sigmoid_q16(sum);
+        // outputs[i] = sigmoid_q16(sum);
+        outputs[i] = (int32_t)sum;
     }
 
     // End calculation

@@ -185,7 +185,8 @@ int main() {
         for (int j = 0; j < l1_inputs; j++) {
             sum += ((int64_t)inputs[j] * (int64_t)h1_weights[j][i]) >> FRAC_WIDTH;
         }
-        h1_outputs[i] = sigmoid_q16((int32_t)sum);
+        // h1_outputs[i] = sigmoid_q16((int32_t)sum);
+        h1_outputs[i] = (int32_t)sum;
     }
 
     // Hidden Layer 2 computation
@@ -194,7 +195,8 @@ int main() {
         for (int j = 0; j < l2_inputs; j++) {
             sum += ((int64_t)h1_outputs[j] * (int64_t)h2_weights[j][i]) >> FRAC_WIDTH;
         }
-        h2_outputs[i] = sigmoid_q16((int32_t)sum);
+        // h2_outputs[i] = sigmoid_q16((int32_t)sum);
+        h2_outputs[i] = (int32_t)sum;
     }
 
     // Output Layer computation
@@ -204,6 +206,7 @@ int main() {
             sum += ((int64_t)h2_outputs[j] * (int64_t)o_weights[j][i]) >> FRAC_WIDTH;
         }
         outputs[i] = sigmoid_q16((int32_t)sum);
+        outputs[i] = (int32_t)sum;
     }
 
     // End calculation
