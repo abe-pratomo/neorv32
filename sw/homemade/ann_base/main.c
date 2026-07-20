@@ -185,8 +185,7 @@ int main() {
         for (int j = 0; j < l1_inputs; j++) {
             sum += ((int64_t)inputs[j] * (int64_t)h1_weights[j][i]) >> FRAC_WIDTH;
         }
-        // h1_outputs[i] = sigmoid_q16((int32_t)sum);
-        h1_outputs[i] = (int32_t)sum;
+        h1_outputs[i] = sigmoid_q16((int32_t)sum);
     }
 
     // Hidden Layer 2 computation
@@ -195,8 +194,7 @@ int main() {
         for (int j = 0; j < l2_inputs; j++) {
             sum += ((int64_t)h1_outputs[j] * (int64_t)h2_weights[j][i]) >> FRAC_WIDTH;
         }
-        // h2_outputs[i] = sigmoid_q16((int32_t)sum);
-        h2_outputs[i] = (int32_t)sum;
+        h2_outputs[i] = sigmoid_q16((int32_t)sum);
     }
 
     // Output Layer computation
@@ -206,7 +204,6 @@ int main() {
             sum += ((int64_t)h2_outputs[j] * (int64_t)o_weights[j][i]) >> FRAC_WIDTH;
         }
         outputs[i] = sigmoid_q16((int32_t)sum);
-        outputs[i] = (int32_t)sum;
     }
 
     // End calculation
@@ -215,12 +212,12 @@ int main() {
     uint32_t elapsed_time_ns    = (uint32_t)(((uint64_t)elapsed_cycles * 1000ULL) / (NEORV32_CLK / 1000000));
 
     // Print results
-    neorv32_uart0_printf("Output Values:\n");
+    neorv32_uart0_printf("Output Values  :\n");
     for (int i = 0; i < o_neuron; i++) {
-        neorv32_uart0_printf("%s Value: %d.%d\n", i ? "Not Tasty" : "Tasty", Q16_TO_INT(outputs[i]), Q16_TO_FRAC(outputs[i]));
+        neorv32_uart0_printf("%s Value%s: %d.%d\n", i ? "Not Tasty" : "Tasty", i ? "" : "    ", Q16_TO_INT(outputs[i]), Q16_TO_FRAC(outputs[i]));
     }
-    neorv32_uart0_printf("Conclusion: %s\n", (outputs[0] > outputs[1]) ? "Tasty" : "Not Tasty");
-    neorv32_uart0_printf("Elapsed Time: %u cycles (%u ns)\n", elapsed_cycles, elapsed_time_ns);
+    neorv32_uart0_printf("Conclusion     : %s\n", (outputs[0] > outputs[1]) ? "Tasty" : "Not Tasty");
+    neorv32_uart0_printf("\nElapsed Time: %u cycles (%u ns)\n", elapsed_cycles, elapsed_time_ns);
 
     // Finish execution
     neorv32_uart0_printf("\n===================== THE END ======================\n");
