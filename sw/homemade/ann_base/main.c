@@ -117,8 +117,8 @@ int32_t sigmoid_q16(int32_t x)
 int32_t inputs[l1_inputs] = {
     // 13107, 52428, 45875, 19660, 65536  // Mie Goreng  - Expected: Tasty
     // 65536, 13107, 19660, 19660, 65536  // Sayur Asem  - Expected: Not Tasty
-    39321, 39321, 19660, 52428, 65536  // Pecel       - Expected: Not Tasty
-    // 19660, 52428, 19660, 32768, 65536  // Nasi Goreng - Expected: Tasty
+    // 39321, 39321, 19660, 52428, 65536  // Pecel       - Expected: Not Tasty
+    19660, 52428, 19660, 32768, 65536  // Nasi Goreng - Expected: Tasty
     // 39321, 58982, 32768, 39321, 65536  // Tahu Campur - Expected: Tasty
     // 19660, 13107, 39321, 65536, 65536  // Dendeng     - Expected: Not Tasty
 };
