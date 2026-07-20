@@ -119,8 +119,6 @@ int main(void) {
     // -------------------------------------------------------------------------
     neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
 
-neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
-
     result = annx_exp((uint32_t)-655360);
     neorv32_uart0_printf("exp(-10)  raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
@@ -161,6 +159,6 @@ neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
     neorv32_uart0_printf("exp(10)   raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
     neorv32_uart0_printf("\n========================\n");
-    neorv32_uart0_printf("========= Done ========\n");
+    neorv32_uart0_printf("========= Done =========\n");
     return 0;
 }
