@@ -170,46 +170,6 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
 
   constant INT32_MAX : signed(63 downto 0) := to_signed(2147483647, 64);
 
-  -- exp_pwl function --
-  function exp_pwl(x : signed(31 downto 0)) return signed(31 downto 0) is
-      variable m        : signed(31 downto 0);
-      variable b        : signed(63 downto 0);
-      variable mult     : signed(63 downto 0);
-      variable result64 : signed(63 downto 0);
-      variable found    : boolean;
-  begin
-      if x <= EXP_MIN_INPUT then
-          return x"00000000";
-      elsif x >= EXP_MAX_INPUT then
-          return x"7FFFFFFF";
-      else
-          -- Default to last segment
-          m := SLOPE(31);
-          b := INTERCEPT(31);
-
-          -- Search for the correct segment
-          found := false;
-          for i in 0 to 30 loop
-              if (not found) and (x < BOUNDARY(i)) then
-                  m     := SLOPE(i);
-                  b     := INTERCEPT(i);
-                  found := true;
-              end if;
-          end loop;
-
-          mult     := m * x;
-          result64 := shift_right(mult, 16) + b;
-
-          if result64 <= 0 then
-              return x"00000000";
-          elsif result64 >= INT32_MAX then
-              return x"7FFFFFFF";
-          else
-              return result64(31 downto 0);
-          end if;
-        end if;
-    end function exp_pwl;
-
 
   -- instruction identifiers (funct3 bit-field) --
   constant lwa_c : std_ulogic_vector(2 downto 0) := "000";
@@ -220,20 +180,24 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
   signal opcode : std_ulogic_vector(6 downto 0); -- instruction opcode
   signal funct3 : std_ulogic_vector(2 downto 0); -- instruction type field
 
-  -- EXP valid signal --
-  signal exp_valid : std_ulogic; -- valid EXP instruction
-
   -- LSU valid register --
   signal lsu_valid : std_ulogic; -- LSU memory read data valid signal
 
-  -- processing logic --
-  type annx_t is record
-    opa     : std_ulogic_vector(31 downto 0); -- input operand a
-    opb     : std_ulogic_vector(31 downto 0); -- input operand b
-    mul     : signed(63 downto 0);            -- intermediate multiplication result
-    res     : std_ulogic_vector(31 downto 0); -- operation result
-  end record;
-  signal annx : annx_t;
+  -- pipeline registers for EXP --
+  signal exp_pipe1_x          : signed(31 downto 0);   -- registered input
+  signal exp_pipe1_m          : signed(31 downto 0);   -- selected slope
+  signal exp_pipe1_b          : signed(63 downto 0);   -- selected intercept
+  signal exp_pipe1_valid      : std_ulogic;            -- stage 1 valid
+  signal exp_pipe1_clamp_min  : std_ulogic;        -- clamp to 0
+  signal exp_pipe1_clamp_max  : std_ulogic;        -- clamp to INT32_MAX
+
+  signal exp_pipe2_res   : std_ulogic_vector(31 downto 0); -- stage 2 result
+  signal exp_pipe2_valid : std_ulogic;                     -- stage 2 valid
+
+  -- signals for LSU-related operations (LWA and LWM) --
+  signal lsu_opa : std_ulogic_vector(31 downto 0); -- first operand
+  signal lsu_opb : std_ulogic_vector(31 downto 0); -- second operand
+  signal lsu_mul : signed(63 downto 0); -- multiplication intermediate signal
 
 begin
 
@@ -243,23 +207,98 @@ begin
   funct3 <= inst_i(14 downto 12); -- type function select
 
 
-  -- ANNX Operand & Operation Select -----------------------------------------------------------
+  -- LSU Operand & Operation Select -----------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
-  annx.opa <= lsu_rdata_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else  -- select LSU memory read data for LWA/LWM
-              rs1_i       when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else                        -- select rs1 for EXP
-              (others => '0');
-  annx.opb <= rs2_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else  -- select rs2 for LWA/LWM
-              (others => '0');
-  annx.mul <= signed(annx.opa) * signed(annx.opb);
-  annx.res <= std_ulogic_vector(signed(annx.opa) + signed(annx.opb))  when ((opcode = opcode_custom0_c) and (funct3 = lwa_c)) else
-              std_ulogic_vector(annx.mul(47 downto 16))               when ((opcode = opcode_custom0_c) and (funct3 = lwm_c)) else
-              std_ulogic_vector(exp_pwl(signed(annx.opa)))            when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else
-              (others => '0');
+  lsu_opa <= lsu_rdata_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else  -- select LSU memory read data for LWA/LWM
+             (others => '0');
+  lsu_opb <= rs2_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else  -- select rs2 for LWA/LWM
+             (others => '0');
+  lsu_mul <= signed(lsu_opa) * signed(lsu_opb);
 
 
-  -- EXP Valid Check ---------------------------------------------------------------------------
-  -- -------------------------------------------------------------------------------------------
-  exp_valid  <= start_i when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else '0'; -- assert valid immediately when start_i is high for EXP instruction
+  -- EXP Pipeline -----------------------------------------------------------------------------
+  -- ------------------------------------------------------------------------------------------
+  process(rstn_i, clk_i)
+    variable m     : signed(31 downto 0);
+    variable b     : signed(63 downto 0);
+    variable found : boolean;
+    variable mult     : signed(63 downto 0);
+    variable result64 : signed(63 downto 0);
+  begin
+    if rstn_i = '0' then
+      exp_pipe1_x         <= (others => '0');
+      exp_pipe1_m         <= (others => '0');
+      exp_pipe1_b         <= (others => '0');
+      exp_pipe1_valid     <= '0';
+      exp_pipe1_clamp_min <= '0';
+      exp_pipe1_clamp_max <= '0';
+      exp_pipe2_res       <= (others => '0');
+      exp_pipe2_valid     <= '0';
+
+    elsif rising_edge(clk_i) then
+
+      -- --------------------------------------------------------
+      -- Stage 1: register input, find segment, detect clamp
+      -- --------------------------------------------------------
+      exp_pipe1_valid <= '0';
+      if (opcode = opcode_custom0_c) and (funct3 = exp_c) and (start_i = '1') then
+        exp_pipe1_x     <= signed(rs1_i);
+        exp_pipe1_valid <= '1';
+
+        -- clamp detection
+        if signed(rs1_i) <= EXP_MIN_INPUT then
+          exp_pipe1_clamp_min <= '1';
+          exp_pipe1_clamp_max <= '0';
+          exp_pipe1_m         <= (others => '0');
+          exp_pipe1_b         <= (others => '0');
+        elsif signed(rs1_i) >= EXP_MAX_INPUT then
+          exp_pipe1_clamp_min <= '0';
+          exp_pipe1_clamp_max <= '1';
+          exp_pipe1_m         <= (others => '0');
+          exp_pipe1_b         <= (others => '0');
+        else
+          exp_pipe1_clamp_min <= '0';
+          exp_pipe1_clamp_max <= '0';
+          -- segment search
+          m     := SLOPE(31);
+          b     := INTERCEPT(31);
+          found := false;
+          for i in 0 to 30 loop
+            if (not found) and (signed(rs1_i) < BOUNDARY(i)) then
+              m     := SLOPE(i);
+              b     := INTERCEPT(i);
+              found := true;
+            end if;
+          end loop;
+          exp_pipe1_m <= m;
+          exp_pipe1_b <= b;
+        end if;
+      end if;
+
+      -- --------------------------------------------------------
+      -- Stage 2: multiply, shift, add intercept, clamp result
+      -- --------------------------------------------------------
+      exp_pipe2_valid <= exp_pipe1_valid;
+      if exp_pipe1_valid = '1' then
+        if exp_pipe1_clamp_min = '1' then
+          exp_pipe2_res <= (others => '0');
+        elsif exp_pipe1_clamp_max = '1' then
+          exp_pipe2_res <= x"7FFFFFFF";
+        else
+          mult      := exp_pipe1_m * exp_pipe1_x;
+          result64  := shift_right(mult, 16) + exp_pipe1_b;
+          if result64 <= 0 then
+            exp_pipe2_res <= (others => '0');
+          elsif result64 >= INT32_MAX then
+            exp_pipe2_res <= x"7FFFFFFF";
+          else
+            exp_pipe2_res <= std_ulogic_vector(result64(31 downto 0));
+          end if;
+        end if;
+      end if;
+
+    end if;
+  end process;
 
 
   -- LSU Valid Check (LWA, LWM) ----------------------------------------------------------------
@@ -280,8 +319,11 @@ begin
 
   -- Result Output and Valid Signal ------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
-  result_o <= annx.res; -- always output the result of the operation, regardless of instruction type
-  valid_o  <= exp_valid xor lsu_valid; -- ensures only valid when either EXP or LWA/LWM is valid, but not both
+  result_o <= std_ulogic_vector(signed(lsu_opa) + signed(lsu_opb))  when ((opcode = opcode_custom0_c) and (funct3 = lwa_c)) else -- LWA
+              std_ulogic_vector(lsu_mul(47 downto 16))              when ((opcode = opcode_custom0_c) and (funct3 = lwm_c)) else -- LWM
+              exp_pipe2_res                                             when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else -- EXP
+              (others => '0');
+  valid_o  <= exp_pipe2_valid xor lsu_valid; -- ensures only valid when either EXP or LWA/LWM is valid, but not both
 
 
 end neorv32_cpu_alu_cfu_rtl;
