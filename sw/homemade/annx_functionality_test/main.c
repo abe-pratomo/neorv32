@@ -197,6 +197,12 @@ int main(void) {
     result = annx_exp( 655360);
     neorv32_uart0_printf("exp(10)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
+    // Debug annx_exp
+    int32_t x = -65536;
+    neorv32_uart0_printf("x raw = 0x%x\n", (uint32_t)x);
+    result = annx_exp((uint32_t)x);
+    neorv32_uart0_printf("exp(-1) = %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
+
     neorv32_uart0_printf("\nDone.\n");
 
     return 0;
