@@ -175,9 +175,9 @@ int main() {
     uint32_t elapsed_time_ns    = (uint32_t)(((uint64_t)elapsed_cycles * 1000ULL) / (NEORV32_CLK / 1000000));
 
     // Print results
-    neorv32_uart0_printf("\nOutput Values  :\n");
+    neorv32_uart0_printf("\nOutput Values :\n");
     for (int i = 0; i < o_neuron; i++) {
-        neorv32_uart0_printf("%s :", i ? "Not Tasty" : "Tasty    "); print_q16(outputs[i]); neorv32_uart0_printf("\n");
+        neorv32_uart0_printf("%s :", i ? "Untastiness" : "Tastiness  "); print_q16(outputs[i]); neorv32_uart0_printf("\n");
     }
     neorv32_uart0_printf("\nConclusion     : %s\n", (outputs[0] > outputs[1]) ? "Tasty" : "Not Tasty");
     neorv32_uart0_printf("\nElapsed Time: %u cycles (%u ns)\n", elapsed_cycles, elapsed_time_ns);
