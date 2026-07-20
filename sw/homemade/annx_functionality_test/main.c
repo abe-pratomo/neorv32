@@ -119,46 +119,48 @@ int main(void) {
     // -------------------------------------------------------------------------
     neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
 
-    int32_t x = -65536;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(-1)  =  "); print_q16(result); neorv32_uart0_printf("\n");
+neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
 
-    x = -524288;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(-8)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-655360);
+    neorv32_uart0_printf("exp(-10)  raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = -393216;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(-6)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-524288);
+    neorv32_uart0_printf("exp(-8)   raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = -262144;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(-4)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-393216);
+    neorv32_uart0_printf("exp(-6)   raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = -131072;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(-2)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-262144);
+    neorv32_uart0_printf("exp(-4)   raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = -65536;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(-1)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-131072);
+    neorv32_uart0_printf("exp(-2)   raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = 0;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(0)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-65536);
+    neorv32_uart0_printf("exp(-1)   raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = 65536;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(1)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)0);
+    neorv32_uart0_printf("exp(0)    raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = 131072;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(2)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)65536);
+    neorv32_uart0_printf("exp(1)    raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = 262144;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(4)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)131072);
+    neorv32_uart0_printf("exp(2)    raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = 393216;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(6)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)262144);
+    neorv32_uart0_printf("exp(4)    raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = 524288;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(8)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)393216);
+    neorv32_uart0_printf("exp(6)    raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
-    x = 655360;
-    result = annx_exp((uint32_t)x); neorv32_uart0_printf("exp(10)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)524288);
+    neorv32_uart0_printf("exp(8)    raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
+
+    result = annx_exp((uint32_t)655360);
+    neorv32_uart0_printf("exp(10)   raw=0x%x  =  ", (uint32_t)result); print_q16(result); neorv32_uart0_printf("\n");
 
     neorv32_uart0_printf("\n========================\n");
-    neorv32_uart0_printf("========= Done =========\n");
+    neorv32_uart0_printf("========= Done ========\n");
     return 0;
 }
