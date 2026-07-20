@@ -186,7 +186,8 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
   signal lsu_add    : signed(31 downto 0);            -- addition intermediate signal
   signal lsu_mul    : signed(63 downto 0);            -- multiplication intermediate signal
 
-  signal lsu_valid  : std_ulogic; -- LSU memory read data valid signal
+  signal lsu_res    : std_ulogic_vector(31 downto 0); -- result select
+  signal lsu_valid  : std_ulogic;                     -- LSU memory read data valid signal
 
   -- pipeline registers for EXP --
   signal exp_x            : signed(31 downto 0);  -- registered input
@@ -216,18 +217,22 @@ begin
   lsu_add <= signed(lsu_opa) + signed(lsu_opb);
   lsu_mul <= signed(lsu_opa) * signed(lsu_opb);
 
+  lsu_res <= std_ulogic_vector(lsu_add) when (opcode = opcode_custom0_c) and (funct3 = lwa_c) else -- LWA
+             std_ulogic_vector(lsu_mul(47 downto 16)) when (opcode = opcode_custom0_c) and (funct3 = lwm_c) else -- LWM
+             (others => '0');
+
 
   -- LSU Valid Check ---------------------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   process(rstn_i, clk_i)
   begin
     if (rstn_i = '0') then
-      lsu_valid   <= '0';
+      lsu_valid <= '0';
     elsif rising_edge(clk_i) then
       if ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) then
         lsu_valid   <= not lsu_wait_i; -- assert one cycle after lsu_wait_i is low for LWA/LWM instructions
       else
-        lsu_valid   <= '0';
+        lsu_valid <= '0';
       end if;
     end if;
   end process;
@@ -322,8 +327,7 @@ begin
 
   -- Result Output and Valid Signal ------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
-  result_o <= lsu_add when ((opcode = opcode_custom0_c) and (funct3 = lwa_c)) else -- LWA
-              lsu_mul when ((opcode = opcode_custom0_c) and (funct3 = lwm_c)) else -- LWM
+  result_o <= lsu_res when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else -- LWA/LWM
               exp_res when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else -- EXP
               (others => '0');
   valid_o  <= exp_valid xor lsu_valid; -- ensures only valid when either EXP or LWA/LWM is valid, but not both
