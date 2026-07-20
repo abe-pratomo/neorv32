@@ -158,43 +158,43 @@ int main(void) {
     // -------------------------------------------------------------------------
     neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
 
-    result = annx_exp(TO_Q16(-10));
+    result = annx_exp(-655360);
     neorv32_uart0_printf("exp(-10.0000)  =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(-8));
+    result = annx_exp(-524288);
     neorv32_uart0_printf("exp(-8.0000)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(-6));
+    result = annx_exp(-393216);
     neorv32_uart0_printf("exp(-6.0000)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(-4));
+    result = annx_exp(-262144);
     neorv32_uart0_printf("exp(-4.0000)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(-2));
+    result = annx_exp(-131072);
     neorv32_uart0_printf("exp(-2.0000)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(-1));
+    result = annx_exp( -65536);
     neorv32_uart0_printf("exp(-1.0000)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(0));
+    result = annx_exp(      0);
     neorv32_uart0_printf("exp(0.0000)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(1));
+    result = annx_exp(  65536);
     neorv32_uart0_printf("exp(1.0000)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(2));
+    result = annx_exp( 131072);
     neorv32_uart0_printf("exp(2.0000)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(4));
+    result = annx_exp( 262144);
     neorv32_uart0_printf("exp(4.0000)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(6));
+    result = annx_exp( 393216);
     neorv32_uart0_printf("exp(6.0000)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(8));
+    result = annx_exp( 524288);
     neorv32_uart0_printf("exp(8.0000)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
-    result = annx_exp(TO_Q16(10));
+    result = annx_exp( 655360);
     neorv32_uart0_printf("exp(10.0000)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
 
     neorv32_uart0_printf("\nDone.\n");
