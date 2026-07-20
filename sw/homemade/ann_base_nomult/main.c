@@ -171,7 +171,7 @@ int main() {
     neorv32_uart0_setup(BAUD_RATE, 0);
 
     // Print banner
-    neorv32_uart0_printf("============= NEORV32 ANN Base Example =============\n");
+    neorv32_uart0_printf("==== NEORV32 ANN (No M-Extension) Base Example =====\n");
     neorv32_uart0_printf("=== ANN for Indonesian Food Preference Detection ===\n");
     neorv32_uart0_printf("====================================================\n\n");
 
