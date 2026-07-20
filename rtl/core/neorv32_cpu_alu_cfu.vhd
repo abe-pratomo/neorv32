@@ -180,24 +180,24 @@ architecture neorv32_cpu_alu_cfu_rtl of neorv32_cpu_alu_cfu is
   signal opcode : std_ulogic_vector(6 downto 0); -- instruction opcode
   signal funct3 : std_ulogic_vector(2 downto 0); -- instruction type field
 
-  -- LSU valid register --
-  signal lsu_valid : std_ulogic; -- LSU memory read data valid signal
+  -- signals for LSU-related operations (LWA and LWM) --
+  signal lsu_opa    : std_ulogic_vector(31 downto 0); -- first operand
+  signal lsu_opb    : std_ulogic_vector(31 downto 0); -- second operand
+  signal lsu_add    : signed(31 downto 0);            -- addition intermediate signal
+  signal lsu_mul    : signed(63 downto 0);            -- multiplication intermediate signal
+
+  signal lsu_valid  : std_ulogic; -- LSU memory read data valid signal
 
   -- pipeline registers for EXP --
-  signal exp_pipe1_x          : signed(31 downto 0);   -- registered input
-  signal exp_pipe1_m          : signed(31 downto 0);   -- selected slope
-  signal exp_pipe1_b          : signed(63 downto 0);   -- selected intercept
-  signal exp_pipe1_valid      : std_ulogic;            -- stage 1 valid
-  signal exp_pipe1_clamp_min  : std_ulogic;        -- clamp to 0
-  signal exp_pipe1_clamp_max  : std_ulogic;        -- clamp to INT32_MAX
+  signal exp_x            : signed(31 downto 0);  -- registered input
+  signal exp_m            : signed(31 downto 0);  -- selected slope
+  signal exp_b            : signed(63 downto 0);  -- selected intercept
+  signal exp_clamp_min    : std_ulogic;           -- clamp to 0
+  signal exp_clamp_max    : std_ulogic;           -- clamp to INT32_MAX
+  signal exp_pipe1_valid  : std_ulogic;           -- stage 1 valid
 
-  signal exp_pipe2_res   : std_ulogic_vector(31 downto 0); -- stage 2 result
-  signal exp_pipe2_valid : std_ulogic;                     -- stage 2 valid
-
-  -- signals for LSU-related operations (LWA and LWM) --
-  signal lsu_opa : std_ulogic_vector(31 downto 0); -- first operand
-  signal lsu_opb : std_ulogic_vector(31 downto 0); -- second operand
-  signal lsu_mul : signed(63 downto 0); -- multiplication intermediate signal
+  signal exp_res          : std_ulogic_vector(31 downto 0);  -- stage 2 result
+  signal exp_valid        : std_ulogic;                      -- stage 2 valid
 
 begin
 
@@ -207,101 +207,17 @@ begin
   funct3 <= inst_i(14 downto 12); -- type function select
 
 
-  -- LSU Operand & Operation Select -----------------------------------------------------------
+  -- LSU Operand & Operation Assign ------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   lsu_opa <= lsu_rdata_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else  -- select LSU memory read data for LWA/LWM
              (others => '0');
   lsu_opb <= rs2_i when ((opcode = opcode_custom0_c) and ((funct3 = lwa_c) or (funct3 = lwm_c))) else  -- select rs2 for LWA/LWM
              (others => '0');
+  lsu_add <= signed(lsu_opa) + signed(lsu_opb);
   lsu_mul <= signed(lsu_opa) * signed(lsu_opb);
 
 
-  -- EXP Pipeline -----------------------------------------------------------------------------
-  -- ------------------------------------------------------------------------------------------
-  process(rstn_i, clk_i)
-    variable m     : signed(31 downto 0);
-    variable b     : signed(63 downto 0);
-    variable found : boolean;
-    variable mult     : signed(63 downto 0);
-    variable result64 : signed(63 downto 0);
-  begin
-    if rstn_i = '0' then
-      exp_pipe1_x         <= (others => '0');
-      exp_pipe1_m         <= (others => '0');
-      exp_pipe1_b         <= (others => '0');
-      exp_pipe1_valid     <= '0';
-      exp_pipe1_clamp_min <= '0';
-      exp_pipe1_clamp_max <= '0';
-      exp_pipe2_res       <= (others => '0');
-      exp_pipe2_valid     <= '0';
-
-    elsif rising_edge(clk_i) then
-
-      -- --------------------------------------------------------
-      -- Stage 1: register input, find segment, detect clamp
-      -- --------------------------------------------------------
-      exp_pipe1_valid <= '0';
-      if (opcode = opcode_custom0_c) and (funct3 = exp_c) and (start_i = '1') then
-        exp_pipe1_x     <= signed(rs1_i);
-        exp_pipe1_valid <= '1';
-
-        -- clamp detection
-        if signed(rs1_i) <= EXP_MIN_INPUT then
-          exp_pipe1_clamp_min <= '1';
-          exp_pipe1_clamp_max <= '0';
-          exp_pipe1_m         <= (others => '0');
-          exp_pipe1_b         <= (others => '0');
-        elsif signed(rs1_i) >= EXP_MAX_INPUT then
-          exp_pipe1_clamp_min <= '0';
-          exp_pipe1_clamp_max <= '1';
-          exp_pipe1_m         <= (others => '0');
-          exp_pipe1_b         <= (others => '0');
-        else
-          exp_pipe1_clamp_min <= '0';
-          exp_pipe1_clamp_max <= '0';
-          -- segment search
-          m     := SLOPE(31);
-          b     := INTERCEPT(31);
-          found := false;
-          for i in 0 to 30 loop
-            if (not found) and (signed(rs1_i) < BOUNDARY(i)) then
-              m     := SLOPE(i);
-              b     := INTERCEPT(i);
-              found := true;
-            end if;
-          end loop;
-          exp_pipe1_m <= m;
-          exp_pipe1_b <= b;
-        end if;
-      end if;
-
-      -- --------------------------------------------------------
-      -- Stage 2: multiply, shift, add intercept, clamp result
-      -- --------------------------------------------------------
-      exp_pipe2_valid <= exp_pipe1_valid;
-      if exp_pipe1_valid = '1' then
-        if exp_pipe1_clamp_min = '1' then
-          exp_pipe2_res <= (others => '0');
-        elsif exp_pipe1_clamp_max = '1' then
-          exp_pipe2_res <= x"7FFFFFFF";
-        else
-          mult      := exp_pipe1_m * exp_pipe1_x;
-          result64  := shift_right(mult, 16) + exp_pipe1_b;
-          if result64 <= 0 then
-            exp_pipe2_res <= (others => '0');
-          elsif result64 >= INT32_MAX then
-            exp_pipe2_res <= x"7FFFFFFF";
-          else
-            exp_pipe2_res <= std_ulogic_vector(result64(31 downto 0));
-          end if;
-        end if;
-      end if;
-
-    end if;
-  end process;
-
-
-  -- LSU Valid Check (LWA, LWM) ----------------------------------------------------------------
+  -- LSU Valid Check ---------------------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
   process(rstn_i, clk_i)
   begin
@@ -317,13 +233,100 @@ begin
   end process;
 
 
+  -- EXP Operand Assign ------------------------------------------------------------------------
+  -- -------------------------------------------------------------------------------------------
+  exp_x <= signed(rs1_i) when (opcode = opcode_custom0_c) and (funct3 = exp_c) else
+           (others => '0');
+
+
+  -- EXP Pipeline -----------------------------------------------------------------------------
+  -- ------------------------------------------------------------------------------------------
+  process(rstn_i, clk_i)
+    variable m        : signed(31 downto 0);
+    variable b        : signed(63 downto 0);
+    variable found    : boolean;
+    variable mult     : signed(63 downto 0);
+    variable result64 : signed(63 downto 0);
+  begin
+    if rstn_i = '0' then
+      exp_m           <= (others => '0');
+      exp_b           <= (others => '0');
+      exp_pipe1_valid <= '0';
+      exp_clamp_min   <= '0';
+      exp_clamp_max   <= '0';
+      exp_res         <= (others => '0');
+      exp_valid       <= '0';
+    elsif rising_edge(clk_i) then
+
+      -- --------------------------------------------------------
+      -- Stage 1: find segment, detect clamp
+      -- --------------------------------------------------------
+      exp_pipe1_valid <= '0';
+      if (opcode = opcode_custom0_c) and (funct3 = exp_c) and (start_i = '1') then
+        exp_pipe1_valid <= '1';
+
+        -- clamp detection
+        if exp_x <= EXP_MIN_INPUT then
+          exp_clamp_min <= '1';
+          exp_clamp_max <= '0';
+          exp_m         <= (others => '0');
+          exp_b         <= (others => '0');
+        elsif exp_x >= EXP_MAX_INPUT then
+          exp_clamp_min <= '0';
+          exp_clamp_max <= '1';
+          exp_m         <= (others => '0');
+          exp_b         <= (others => '0');
+        else
+          exp_clamp_min <= '0';
+          exp_clamp_max <= '0';
+          -- segment search
+          m     := SLOPE(31);
+          b     := INTERCEPT(31);
+          found := false;
+          for i in 0 to 30 loop
+            if (not found) and (exp_x < BOUNDARY(i)) then
+              m     := SLOPE(i);
+              b     := INTERCEPT(i);
+              found := true;
+            end if;
+          end loop;
+          exp_m <= m;
+          exp_b <= b;
+        end if;
+      end if;
+
+      -- --------------------------------------------------------
+      -- Stage 2: multiply, shift, add intercept, clamp result
+      -- --------------------------------------------------------
+      exp_valid <= exp_pipe1_valid;
+      if exp_pipe1_valid = '1' then
+        if exp_clamp_min = '1' then
+          exp_res <= (others => '0');
+        elsif exp_clamp_max = '1' then
+          exp_res <= x"7FFFFFFF";
+        else
+          mult      := exp_m * exp_x;
+          result64  := shift_right(mult, 16) + exp_b;
+          if result64 <= 0 then
+            exp_res <= (others => '0');
+          elsif result64 >= INT32_MAX then
+            exp_res <= x"7FFFFFFF";
+          else
+            exp_res <= std_ulogic_vector(result64(31 downto 0));
+          end if;
+        end if;
+      end if;
+    end if;
+  end process;
+
+
   -- Result Output and Valid Signal ------------------------------------------------------------
   -- -------------------------------------------------------------------------------------------
-  result_o <= std_ulogic_vector(signed(lsu_opa) + signed(lsu_opb))  when ((opcode = opcode_custom0_c) and (funct3 = lwa_c)) else -- LWA
-              std_ulogic_vector(lsu_mul(47 downto 16))              when ((opcode = opcode_custom0_c) and (funct3 = lwm_c)) else -- LWM
-              exp_pipe2_res                                             when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else -- EXP
+  result_o <= lsu_add when ((opcode = opcode_custom0_c) and (funct3 = lwa_c)) else -- LWA
+              lsu_mul when ((opcode = opcode_custom0_c) and (funct3 = lwm_c)) else -- LWM
+              exp_res when ((opcode = opcode_custom0_c) and (funct3 = exp_c)) else -- EXP
               (others => '0');
-  valid_o  <= exp_pipe2_valid xor lsu_valid; -- ensures only valid when either EXP or LWA/LWM is valid, but not both
+  valid_o  <= exp_valid xor lsu_valid; -- ensures only valid when either EXP or LWA/LWM is valid, but not both
 
 
 end neorv32_cpu_alu_cfu_rtl;
