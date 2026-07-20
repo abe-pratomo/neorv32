@@ -31,7 +31,7 @@
 
 // UART0 baud rate
 #ifndef UART_BAUD
-#define UART_BAUD 9600
+#define UART_BAUD 19200
 #endif
 
 // Enable UART0 hardware flow control (0,1)
