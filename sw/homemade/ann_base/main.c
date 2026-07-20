@@ -167,10 +167,10 @@ int main() {
 
     // Print taste values
     neorv32_uart0_printf("Input Taste Values:\n");
-    neorv32_uart0_printf("Sourness: %d.%04d\n"
-                          "Sweetness: %d.%04d\n"
-                          "Bitterness: %d.%04d\n"
-                          "Spiciness: %d.%04d\n\n",
+    neorv32_uart0_printf("Sourness: %d.%d\n"
+                          "Sweetness: %d.%d\n"
+                          "Bitterness: %d.%d\n"
+                          "Spiciness: %d.%d\n\n",
                           Q16_TO_INT(inputs[0]), Q16_TO_FRAC(inputs[0]),
                           Q16_TO_INT(inputs[1]), Q16_TO_FRAC(inputs[1]),
                           Q16_TO_INT(inputs[2]), Q16_TO_FRAC(inputs[2]),
@@ -214,7 +214,7 @@ int main() {
     // Print results
     neorv32_uart0_printf("Output Values:\n");
     for (int i = 0; i < o_neuron; i++) {
-        neorv32_uart0_printf("%s Value: %d.%04d\n", i ? "Not Tasty" : "Tasty", Q16_TO_INT(outputs[i]), Q16_TO_FRAC(outputs[i]));
+        neorv32_uart0_printf("%s Value: %d.%d\n", i ? "Not Tasty" : "Tasty", Q16_TO_INT(outputs[i]), Q16_TO_FRAC(outputs[i]));
     }
     neorv32_uart0_printf("Conclusion: %s\n", (outputs[0] > outputs[1]) ? "Tasty" : "Not Tasty");
     neorv32_uart0_printf("Elapsed Time: %u cycles (%u ns)\n", elapsed_cycles, elapsed_time_ns);
