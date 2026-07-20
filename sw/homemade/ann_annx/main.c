@@ -129,13 +129,12 @@ int main() {
     for (int i = 0; i < h1_neuron; i++) {
         uint32_t wbase = (uint32_t)h1_weights[i];
 
-        int32_t p0 = annx_lwm(wbase, inputs[0], 0);
-        int32_t p1 = annx_lwm(wbase, inputs[1], 1);
-        int32_t p2 = annx_lwm(wbase, inputs[2], 2);
-        int32_t p3 = annx_lwm(wbase, inputs[3], 3);
-        int32_t p4 = annx_lwm(wbase, inputs[4], 4);
+        int32_t sum = annx_lwm(wbase, inputs[0], 0);
+        annx_lwa(annx_lwm(wbase, inputs[1], 1), sum, 0);
+        annx_lwa(annx_lwm(wbase, inputs[2], 2), sum, 0);
+        annx_lwa(annx_lwm(wbase, inputs[3], 3), sum, 0);
+        annx_lwa(annx_lwm(wbase, inputs[4], 4), sum, 0);
 
-        int32_t sum = p0 + p1 + p2 + p3 + p4;
         // h1_outputs[i] = sigmoid_q16(sum);
         h1_outputs[i] = (int32_t)sum;
     }
@@ -146,14 +145,13 @@ int main() {
     for (int i = 0; i < h2_neuron; i++) {
         uint32_t wbase = (uint32_t)h2_weights[i];
 
-        int32_t p0 = annx_lwm(wbase, h1_outputs[0], 0);
-        int32_t p1 = annx_lwm(wbase, h1_outputs[1], 1);
-        int32_t p2 = annx_lwm(wbase, h1_outputs[2], 2);
-        int32_t p3 = annx_lwm(wbase, h1_outputs[3], 3);
-        int32_t p4 = annx_lwm(wbase, h1_outputs[4], 4);
-        int32_t p5 = annx_lwm(wbase, h1_outputs[5], 5);
+        int32_t sum = annx_lwm(wbase, h1_outputs[0], 0);
+        annx_lwa(annx_lwm(wbase, h1_outputs[1], 1), sum, 0);
+        annx_lwa(annx_lwm(wbase, h1_outputs[2], 2), sum, 0);
+        annx_lwa(annx_lwm(wbase, h1_outputs[3], 3), sum, 0);
+        annx_lwa(annx_lwm(wbase, h1_outputs[4], 4), sum, 0);
+        annx_lwa(annx_lwm(wbase, h1_outputs[5], 5), sum, 0);
 
-        int32_t sum = p0 + p1 + p2 + p3 + p4 + p5;
         // h2_outputs[i] = sigmoid_q16(sum);
         h2_outputs[i] = (int32_t)sum;
     }
@@ -164,14 +162,13 @@ int main() {
     for (int i = 0; i < o_neuron; i++) {
         uint32_t wbase = (uint32_t)o_weights[i];
 
-        int32_t p0 = annx_lwm(wbase, h2_outputs[0], 0);
-        int32_t p1 = annx_lwm(wbase, h2_outputs[1], 1);
-        int32_t p2 = annx_lwm(wbase, h2_outputs[2], 2);
-        int32_t p3 = annx_lwm(wbase, h2_outputs[3], 3);
-        int32_t p4 = annx_lwm(wbase, h2_outputs[4], 4);
-        int32_t p5 = annx_lwm(wbase, h2_outputs[5], 5);
+        int32_t sum = annx_lwm(wbase, h2_outputs[0], 0);
+        annx_lwa(annx_lwm(wbase, h2_outputs[1], 1), sum, 0);
+        annx_lwa(annx_lwm(wbase, h2_outputs[2], 2), sum, 0);
+        annx_lwa(annx_lwm(wbase, h2_outputs[3], 3), sum, 0);
+        annx_lwa(annx_lwm(wbase, h2_outputs[4], 4), sum, 0);
+        annx_lwa(annx_lwm(wbase, h2_outputs[5], 5), sum, 0);
 
-        int32_t sum = p0 + p1 + p2 + p3 + p4 + p5;
         // outputs[i] = sigmoid_q16(sum);
         outputs[i] = (int32_t)sum;
     }

@@ -167,10 +167,10 @@ int main() {
 
     // Print taste values
     neorv32_uart0_printf("Input Taste Values:\n");
-    neorv32_uart0_printf("Sourness: %d.%d\n"
-                          "Sweetness: %d.%d\n"
+    neorv32_uart0_printf("Sourness   : %d.%d\n"
+                          "Sweetness : %d.%d\n"
                           "Bitterness: %d.%d\n"
-                          "Spiciness: %d.%d\n\n",
+                          "Spiciness : %d.%d\n\n",
                           Q16_TO_INT(inputs[0]), Q16_TO_FRAC(inputs[0]),
                           Q16_TO_INT(inputs[1]), Q16_TO_FRAC(inputs[1]),
                           Q16_TO_INT(inputs[2]), Q16_TO_FRAC(inputs[2]),
