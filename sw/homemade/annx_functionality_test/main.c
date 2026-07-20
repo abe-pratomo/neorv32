@@ -9,9 +9,18 @@
 #define Q16_TO_INT(x)  ((x) >> 16)
 #define Q16_TO_FRAC(x) ((int32_t)((((x) & 0xFFFF) * 10000) >> 16))
 
+// Print a Q16.16 value with 4 decimal places, handling leading zeros
+void print_q16(int32_t val) {
+    int32_t i = Q16_TO_INT(val);
+    int32_t f = Q16_TO_FRAC(val);
+    if      (f < 10)   neorv32_uart0_printf("%d.000%d", i, f);
+    else if (f < 100)  neorv32_uart0_printf("%d.00%d",  i, f);
+    else if (f < 1000) neorv32_uart0_printf("%d.0%d",   i, f);
+    else               neorv32_uart0_printf("%d.%d",    i, f);
+}
+
 int main(void) {
 
-    // UART init
     neorv32_uart0_setup(BAUD_RATE, 0);
     neorv32_uart0_printf("ANNX Functionality Check\n");
     neorv32_uart0_printf("========================\n\n");
@@ -44,166 +53,86 @@ int main(void) {
     int32_t result;
 
     // -------------------------------------------------------------------------
-    // LWA test: result = mem_a[i] + mem_b[i]
+    // LWA test
     // -------------------------------------------------------------------------
     neorv32_uart0_printf("=== LWA Test: mem_a[i] + mem_b[i] ===\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[0], 0);
-    neorv32_uart0_printf("[0]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[0]), Q16_TO_FRAC(mem_a[0]),
-        Q16_TO_INT(mem_b[0]), Q16_TO_FRAC(mem_b[0]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[0]  "); print_q16(mem_a[0]); neorv32_uart0_printf("  +  "); print_q16(mem_b[0]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[1], 1);
-    neorv32_uart0_printf("[1]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[1]), Q16_TO_FRAC(mem_a[1]),
-        Q16_TO_INT(mem_b[1]), Q16_TO_FRAC(mem_b[1]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[1]  "); print_q16(mem_a[1]); neorv32_uart0_printf("  +  "); print_q16(mem_b[1]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[2], 2);
-    neorv32_uart0_printf("[2]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[2]), Q16_TO_FRAC(mem_a[2]),
-        Q16_TO_INT(mem_b[2]), Q16_TO_FRAC(mem_b[2]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[2]  "); print_q16(mem_a[2]); neorv32_uart0_printf("  +  "); print_q16(mem_b[2]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[3], 3);
-    neorv32_uart0_printf("[3]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[3]), Q16_TO_FRAC(mem_a[3]),
-        Q16_TO_INT(mem_b[3]), Q16_TO_FRAC(mem_b[3]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[3]  "); print_q16(mem_a[3]); neorv32_uart0_printf("  +  "); print_q16(mem_b[3]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[4], 4);
-    neorv32_uart0_printf("[4]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[4]), Q16_TO_FRAC(mem_a[4]),
-        Q16_TO_INT(mem_b[4]), Q16_TO_FRAC(mem_b[4]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[4]  "); print_q16(mem_a[4]); neorv32_uart0_printf("  +  "); print_q16(mem_b[4]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[5], 5);
-    neorv32_uart0_printf("[5]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[5]), Q16_TO_FRAC(mem_a[5]),
-        Q16_TO_INT(mem_b[5]), Q16_TO_FRAC(mem_b[5]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[5]  "); print_q16(mem_a[5]); neorv32_uart0_printf("  +  "); print_q16(mem_b[5]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[6], 6);
-    neorv32_uart0_printf("[6]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[6]), Q16_TO_FRAC(mem_a[6]),
-        Q16_TO_INT(mem_b[6]), Q16_TO_FRAC(mem_b[6]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[6]  "); print_q16(mem_a[6]); neorv32_uart0_printf("  +  "); print_q16(mem_b[6]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwa((uint32_t)mem_a, mem_b[7], 7);
-    neorv32_uart0_printf("[7]  %d.%d  +  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[7]), Q16_TO_FRAC(mem_a[7]),
-        Q16_TO_INT(mem_b[7]), Q16_TO_FRAC(mem_b[7]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[7]  "); print_q16(mem_a[7]); neorv32_uart0_printf("  +  "); print_q16(mem_b[7]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     neorv32_uart0_printf("\n");
 
     // -------------------------------------------------------------------------
-    // LWM test: result = (mem_a[i] * mem_b[i]) >> 16
+    // LWM test
     // -------------------------------------------------------------------------
     neorv32_uart0_printf("=== LWM Test: (mem_a[i] * mem_b[i]) >> 16 ===\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[0], 0);
-    neorv32_uart0_printf("[0]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[0]), Q16_TO_FRAC(mem_a[0]),
-        Q16_TO_INT(mem_b[0]), Q16_TO_FRAC(mem_b[0]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[0]  "); print_q16(mem_a[0]); neorv32_uart0_printf("  x  "); print_q16(mem_b[0]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[1], 1);
-    neorv32_uart0_printf("[1]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[1]), Q16_TO_FRAC(mem_a[1]),
-        Q16_TO_INT(mem_b[1]), Q16_TO_FRAC(mem_b[1]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[1]  "); print_q16(mem_a[1]); neorv32_uart0_printf("  x  "); print_q16(mem_b[1]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[2], 2);
-    neorv32_uart0_printf("[2]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[2]), Q16_TO_FRAC(mem_a[2]),
-        Q16_TO_INT(mem_b[2]), Q16_TO_FRAC(mem_b[2]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[2]  "); print_q16(mem_a[2]); neorv32_uart0_printf("  x  "); print_q16(mem_b[2]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[3], 3);
-    neorv32_uart0_printf("[3]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[3]), Q16_TO_FRAC(mem_a[3]),
-        Q16_TO_INT(mem_b[3]), Q16_TO_FRAC(mem_b[3]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[3]  "); print_q16(mem_a[3]); neorv32_uart0_printf("  x  "); print_q16(mem_b[3]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[4], 4);
-    neorv32_uart0_printf("[4]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[4]), Q16_TO_FRAC(mem_a[4]),
-        Q16_TO_INT(mem_b[4]), Q16_TO_FRAC(mem_b[4]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[4]  "); print_q16(mem_a[4]); neorv32_uart0_printf("  x  "); print_q16(mem_b[4]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[5], 5);
-    neorv32_uart0_printf("[5]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[5]), Q16_TO_FRAC(mem_a[5]),
-        Q16_TO_INT(mem_b[5]), Q16_TO_FRAC(mem_b[5]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[5]  "); print_q16(mem_a[5]); neorv32_uart0_printf("  x  "); print_q16(mem_b[5]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[6], 6);
-    neorv32_uart0_printf("[6]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[6]), Q16_TO_FRAC(mem_a[6]),
-        Q16_TO_INT(mem_b[6]), Q16_TO_FRAC(mem_b[6]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[6]  "); print_q16(mem_a[6]); neorv32_uart0_printf("  x  "); print_q16(mem_b[6]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     result = annx_lwm((uint32_t)mem_a, mem_b[7], 7);
-    neorv32_uart0_printf("[7]  %d.%d  x  %d.%d  =  %d.%d\n",
-        Q16_TO_INT(mem_a[7]), Q16_TO_FRAC(mem_a[7]),
-        Q16_TO_INT(mem_b[7]), Q16_TO_FRAC(mem_b[7]),
-        Q16_TO_INT(result),   Q16_TO_FRAC(result));
+    neorv32_uart0_printf("[7]  "); print_q16(mem_a[7]); neorv32_uart0_printf("  x  "); print_q16(mem_b[7]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     neorv32_uart0_printf("\n");
 
     // -------------------------------------------------------------------------
-    // EXP test: result = exp_pwl(x)
+    // EXP test
     // -------------------------------------------------------------------------
     neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
 
-    result = annx_exp(-655360);
-    neorv32_uart0_printf("exp(-10)  =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp(-524288);
-    neorv32_uart0_printf("exp(-8)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp(-393216);
-    neorv32_uart0_printf("exp(-6)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp(-262144);
-    neorv32_uart0_printf("exp(-4)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp(-131072);
-    neorv32_uart0_printf("exp(-2)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp( -65536);
-    neorv32_uart0_printf("exp(-1)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp(      0);
-    neorv32_uart0_printf("exp(0)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp(  65536);
-    neorv32_uart0_printf("exp(1)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp( 131072);
-    neorv32_uart0_printf("exp(2)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp( 262144);
-    neorv32_uart0_printf("exp(4)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp( 393216);
-    neorv32_uart0_printf("exp(6)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp( 524288);
-    neorv32_uart0_printf("exp(8)    =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    result = annx_exp( 655360);
-    neorv32_uart0_printf("exp(10)   =  %d.%d\n", Q16_TO_INT(result), Q16_TO_FRAC(result));
-
-    // Debug annx_exp
-    int32_t x = -524288;  // -8.0 in Q16.16
-    neorv32_uart0_printf("x raw = 0x%x\n", (uint32_t)x);
-    result = annx_exp((uint32_t)x);
-    neorv32_uart0_printf("exp(-8) raw = 0x%x = %d\n", (uint32_t)result, result);
+    result = annx_exp(-655360); neorv32_uart0_printf("exp(-10)  =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp(-524288); neorv32_uart0_printf("exp(-8)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp(-393216); neorv32_uart0_printf("exp(-6)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp(-262144); neorv32_uart0_printf("exp(-4)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp(-131072); neorv32_uart0_printf("exp(-2)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp( -65536); neorv32_uart0_printf("exp(-1)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp(      0); neorv32_uart0_printf("exp(0)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp(  65536); neorv32_uart0_printf("exp(1)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp( 131072); neorv32_uart0_printf("exp(2)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp( 262144); neorv32_uart0_printf("exp(4)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp( 393216); neorv32_uart0_printf("exp(6)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp( 524288); neorv32_uart0_printf("exp(8)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp( 655360); neorv32_uart0_printf("exp(10)   =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     neorv32_uart0_printf("\nDone.\n");
-
     return 0;
 }
