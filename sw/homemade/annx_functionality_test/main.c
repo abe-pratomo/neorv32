@@ -133,6 +133,7 @@ int main(void) {
     result = annx_exp((uint32_t) 524288); neorv32_uart0_printf("exp(8)    =  "); print_q16(result); neorv32_uart0_printf("\n");
     result = annx_exp((uint32_t) 655360); neorv32_uart0_printf("exp(10)   =  "); print_q16(result); neorv32_uart0_printf("\n");
 
-    neorv32_uart0_printf("\nDone.\n");
+    neorv32_uart0_printf("========================\n\n");
+    neorv32_uart0_printf("\n========= Done ========\n");
     return 0;
 }
