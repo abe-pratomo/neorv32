@@ -8,6 +8,16 @@
 #define Q16_TO_INT(x)  ((x) >> 16)
 #define Q16_TO_FRAC(x) ((int32_t)((((x) & 0xFFFF) * 10000) >> 16))
 
+// Print a Q16.16 value with 4 decimal places, handling leading zeros
+void print_q16(int32_t val) {
+    int32_t i = Q16_TO_INT(val);
+    int32_t f = Q16_TO_FRAC(val);
+    if      (f < 10)   neorv32_uart0_printf("%d.000%d", i, f);
+    else if (f < 100)  neorv32_uart0_printf("%d.00%d",  i, f);
+    else if (f < 1000) neorv32_uart0_printf("%d.0%d",   i, f);
+    else               neorv32_uart0_printf("%d.%d",    i, f);
+}
+
 // ============================================================
 // Q16.16 constants
 // ============================================================
@@ -167,14 +177,10 @@ int main() {
 
     // Print taste values
     neorv32_uart0_printf("Input Taste Values:\n");
-    neorv32_uart0_printf("Sourness   : %d.%d\n"
-                          "Sweetness : %d.%d\n"
-                          "Bitterness: %d.%d\n"
-                          "Spiciness : %d.%d\n\n",
-                          Q16_TO_INT(inputs[0]), Q16_TO_FRAC(inputs[0]),
-                          Q16_TO_INT(inputs[1]), Q16_TO_FRAC(inputs[1]),
-                          Q16_TO_INT(inputs[2]), Q16_TO_FRAC(inputs[2]),
-                          Q16_TO_INT(inputs[3]), Q16_TO_FRAC(inputs[3]));
+    neorv32_uart0_printf("Sourness  : "); print_q16(inputs[0]); neorv32_uart0_printf("\n");
+    neorv32_uart0_printf("Sweetness : "); print_q16(inputs[1]); neorv32_uart0_printf("\n");
+    neorv32_uart0_printf("Saltiness : "); print_q16(inputs[2]); neorv32_uart0_printf("\n");
+    neorv32_uart0_printf("Spiciness : "); print_q16(inputs[3]); neorv32_uart0_printf("\n");
 
     // Start calculation
     uint32_t start_time = neorv32_cpu_csr_read(CSR_CYCLE);
@@ -214,7 +220,7 @@ int main() {
     // Print results
     neorv32_uart0_printf("Output Values  :\n");
     for (int i = 0; i < o_neuron; i++) {
-        neorv32_uart0_printf("%s Value%s: %d.%d\n", i ? "Not Tasty" : "Tasty", i ? "" : "    ", Q16_TO_INT(outputs[i]), Q16_TO_FRAC(outputs[i]));
+        neorv32_uart0_printf("%s Value%s:", i ? "Not Tasty" : "Tasty", i ? "" : "    "); print_q16(outputs[i]); neorv32_uart0_printf("\n");
     }
     neorv32_uart0_printf("Conclusion     : %s\n", (outputs[0] > outputs[1]) ? "Tasty" : "Not Tasty");
     neorv32_uart0_printf("\nElapsed Time: %u cycles (%u ns)\n", elapsed_cycles, elapsed_time_ns);
