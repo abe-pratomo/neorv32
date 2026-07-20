@@ -119,19 +119,19 @@ int main(void) {
     // -------------------------------------------------------------------------
     neorv32_uart0_printf("=== EXP Test: exp_pwl(x) ===\n");
 
-    result = annx_exp(-655360); neorv32_uart0_printf("exp(-10)  =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp(-524288); neorv32_uart0_printf("exp(-8)   =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp(-393216); neorv32_uart0_printf("exp(-6)   =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp(-262144); neorv32_uart0_printf("exp(-4)   =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp(-131072); neorv32_uart0_printf("exp(-2)   =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp( -65536); neorv32_uart0_printf("exp(-1)   =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp(      0); neorv32_uart0_printf("exp(0)    =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp(  65536); neorv32_uart0_printf("exp(1)    =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp( 131072); neorv32_uart0_printf("exp(2)    =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp( 262144); neorv32_uart0_printf("exp(4)    =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp( 393216); neorv32_uart0_printf("exp(6)    =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp( 524288); neorv32_uart0_printf("exp(8)    =  "); print_q16(result); neorv32_uart0_printf("\n");
-    result = annx_exp( 655360); neorv32_uart0_printf("exp(10)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-655360); neorv32_uart0_printf("exp(-10)  =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-524288); neorv32_uart0_printf("exp(-8)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-393216); neorv32_uart0_printf("exp(-6)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-262144); neorv32_uart0_printf("exp(-4)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)-131072); neorv32_uart0_printf("exp(-2)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t) -65536); neorv32_uart0_printf("exp(-1)   =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)      0); neorv32_uart0_printf("exp(0)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t)  65536); neorv32_uart0_printf("exp(1)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t) 131072); neorv32_uart0_printf("exp(2)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t) 262144); neorv32_uart0_printf("exp(4)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t) 393216); neorv32_uart0_printf("exp(6)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t) 524288); neorv32_uart0_printf("exp(8)    =  "); print_q16(result); neorv32_uart0_printf("\n");
+    result = annx_exp((uint32_t) 655360); neorv32_uart0_printf("exp(10)   =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     neorv32_uart0_printf("\nDone.\n");
     return 0;
