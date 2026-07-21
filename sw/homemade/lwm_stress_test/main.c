@@ -1,21 +1,9 @@
 #include <neorv32.h>
 #include <stdint.h>
 #include <neorv32_cust_annx.h>
+#include <neorv32_q16_helper.h>
 
 #define BAUD_RATE 19200
-
-#define TO_Q16(x)      ((int32_t)((x) * 65536))
-#define Q16_TO_INT(x)  ((x) >> 16)
-#define Q16_TO_FRAC(x) ((int32_t)((((x) & 0xFFFF) * 10000) >> 16))
-
-void print_q16(int32_t val) {
-    int32_t i = Q16_TO_INT(val);
-    int32_t f = Q16_TO_FRAC(val);
-    if      (f < 10)   neorv32_uart0_printf("%d.000%d", i, f);
-    else if (f < 100)  neorv32_uart0_printf("%d.00%d",  i, f);
-    else if (f < 1000) neorv32_uart0_printf("%d.0%d",   i, f);
-    else               neorv32_uart0_printf("%d.%d",    i, f);
-}
 
 int32_t values[128] = {
     TO_Q16( 2.4375 ), TO_Q16(-1.6875 ), TO_Q16( 0.8125 ), TO_Q16(-3.1250 ), TO_Q16( 1.5625 ), TO_Q16(-0.9375 ), TO_Q16( 2.21875), TO_Q16(-2.78125),
@@ -40,14 +28,16 @@ void run_test(int n) {
 
     uint32_t start_base, end_base, elapsed_base;
     uint32_t start_annx, end_annx, elapsed_annx;
-    int32_t  product_base = TO_Q16(1);
-    int32_t  product_annx = TO_Q16(1);
+    int64_t  product_base64 = TO_Q16(1);
+    int32_t  product_base   = 0;
+    int32_t  product_annx   = TO_Q16(1);
 
     // Base: software multiplication (load + multiply)
     start_base = neorv32_cpu_csr_read(CSR_CYCLE);
     for (int i = 0; i < n; i++) {
-        product_base = (product_base * values[i]) >> 16;
+        product_base64 = (product_base64 * (int64_t)values[i]) >> 16;
     }
+    product_base = (int32_t)product_base64;
     end_base = neorv32_cpu_csr_read(CSR_CYCLE);
     elapsed_base = end_base - start_base;
 
@@ -192,6 +182,7 @@ void run_test(int n) {
                            elapsed_base * 100 / elapsed_annx : 0;
 
     neorv32_uart0_printf("N=%d\n", n);
+    neorv32_uart0_printf("  Last input:"); print_q16(values[n-1]);
     neorv32_uart0_printf("  Base: product="); print_q16(product_base);
     neorv32_uart0_printf(", cycles=%u\n", elapsed_base);
     neorv32_uart0_printf("  ANNX: product="); print_q16(product_annx);

@@ -26,7 +26,8 @@ build/main.c.o: main.c ../../../sw/lib/include/neorv32.h \
  ../../../sw/lib/include/neorv32_uart.h \
  ../../../sw/lib/include/neorv32_wdt.h \
  ../../../sw/lib/include/neorv32_cust_annx.h \
- ../../../sw/lib/include/neorv32_intrinsics.h
+ ../../../sw/lib/include/neorv32_intrinsics.h \
+ ../../../sw/lib/include/neorv32_q16_helper.h
 ../../../sw/lib/include/neorv32.h:
 ../../../sw/lib/include/neorv32_aux.h:
 ../../../sw/lib/include/neorv32_cfs.h:
@@ -56,3 +57,4 @@ build/main.c.o: main.c ../../../sw/lib/include/neorv32.h \
 ../../../sw/lib/include/neorv32_wdt.h:
 ../../../sw/lib/include/neorv32_cust_annx.h:
 ../../../sw/lib/include/neorv32_intrinsics.h:
+../../../sw/lib/include/neorv32_q16_helper.h:

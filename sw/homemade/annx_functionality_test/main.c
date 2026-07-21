@@ -1,23 +1,9 @@
 #include <neorv32.h>
 #include <stdint.h>
 #include <neorv32_cust_annx.h>
+#include <neorv32_q16_helper.h>
 
 #define BAUD_RATE 19200
-
-// Q16.16 conversion helpers
-#define TO_Q16(x)      ((int32_t)((x) * 65536))
-#define Q16_TO_INT(x)  ((x) >> 16)
-#define Q16_TO_FRAC(x) ((int32_t)((((x) & 0xFFFF) * 10000) >> 16))
-
-// Print a Q16.16 value with 4 decimal places, handling leading zeros
-void print_q16(int32_t val) {
-    int32_t i = Q16_TO_INT(val);
-    int32_t f = Q16_TO_FRAC(val);
-    if      (f < 10)   neorv32_uart0_printf("%d.000%d", i, f);
-    else if (f < 100)  neorv32_uart0_printf("%d.00%d",  i, f);
-    else if (f < 1000) neorv32_uart0_printf("%d.0%d",   i, f);
-    else               neorv32_uart0_printf("%d.%d",    i, f);
-}
 
 int main(void) {
 
