@@ -201,7 +201,7 @@ void run_test(int n) {
 int main(void) {
 
     neorv32_uart0_setup(BAUD_RATE, 0);
-    neorv32_uart0_printf("======= LWA Stress Test: Sigma Operation ========\n");
+    neorv32_uart0_printf("LWA Stress Test: Sigma Operation (No M-Extension)\n");
     neorv32_uart0_printf("=================================================\n\n");
 
     run_test(1);

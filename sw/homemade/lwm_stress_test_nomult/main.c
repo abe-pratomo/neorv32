@@ -201,7 +201,7 @@ void run_test(int n) {
 int main(void) {
 
     neorv32_uart0_setup(BAUD_RATE, 0);
-    neorv32_uart0_printf("========= LWM Stress Test: Pi Operation =========\n");
+    neorv32_uart0_printf("= LWM Stress Test: Pi Operation (No M-Extension) \n");
     neorv32_uart0_printf("=================================================\n\n");
 
     run_test(1);
