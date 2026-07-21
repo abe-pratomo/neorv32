@@ -53,7 +53,7 @@ void run_test(int n) {
 
     // ANNX: LWM pi (load + add fused)
     // annx_lwm(base, rs2, word_offset) = MEM[base + word_offset<<2] * rs2
-    // accumulate: sum = annx_lwm(values, sum, i) for each i
+    // accumulate: product = annx_lwm(values, product, i) for each i
     start_annx = neorv32_cpu_csr_read(CSR_CYCLE);
     product_annx = annx_lwm((uint32_t)values, 0, 0);
     if (n >= 2)   product_annx = annx_lwm((uint32_t)values, product_annx, 1);
@@ -191,9 +191,9 @@ void run_test(int n) {
                            elapsed_base * 100 / elapsed_annx : 0;
 
     neorv32_uart0_printf("N=%d\n", n);
-    neorv32_uart0_printf("  Base: sum="); print_q16(product_base);
+    neorv32_uart0_printf("  Base: product="); print_q16(product_base);
     neorv32_uart0_printf(", cycles=%u\n", elapsed_base);
-    neorv32_uart0_printf("  ANNX: sum="); print_q16(product_annx);
+    neorv32_uart0_printf("  ANNX: product="); print_q16(product_annx);
     neorv32_uart0_printf(", cycles=%u\n", elapsed_annx);
     neorv32_uart0_printf("  Speedup: %u%%\n\n", speedup_pct);
 }
