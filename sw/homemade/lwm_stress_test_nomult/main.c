@@ -28,14 +28,16 @@ void run_test(int n) {
 
     uint32_t start_base, end_base, elapsed_base;
     uint32_t start_annx, end_annx, elapsed_annx;
-    int32_t  product_base = TO_Q16(1);
-    int32_t  product_annx = TO_Q16(1);
+    int64_t  product_base64 = TO_Q16(1);
+    int32_t  product_base   = 0;
+    int32_t  product_annx   = TO_Q16(1);
 
     // Base: software multiplication (load + multiply)
     start_base = neorv32_cpu_csr_read(CSR_CYCLE);
     for (int i = 0; i < n; i++) {
-        product_base = (product_base * values[i]) >> 16;
+        product_base64 = (product_base64 * (int64_t)values[i]) >> 16;
     }
+    product_base = (int32_t)product_base64;
     end_base = neorv32_cpu_csr_read(CSR_CYCLE);
     elapsed_base = end_base - start_base;
 

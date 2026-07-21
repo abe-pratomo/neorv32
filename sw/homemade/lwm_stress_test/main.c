@@ -182,7 +182,6 @@ void run_test(int n) {
                            elapsed_base * 100 / elapsed_annx : 0;
 
     neorv32_uart0_printf("N=%d\n", n);
-    neorv32_uart0_printf("  Last input:"); print_q16(values[n-1]);
     neorv32_uart0_printf("  Base: product="); print_q16(product_base);
     neorv32_uart0_printf(", cycles=%u\n", elapsed_base);
     neorv32_uart0_printf("  ANNX: product="); print_q16(product_annx);
