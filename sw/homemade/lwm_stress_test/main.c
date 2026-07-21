@@ -43,7 +43,7 @@ void run_test(int n) {
     int32_t  product_base = 1;
     int32_t  product_annx = 1;
 
-    // Base: software addition (load + multiply)
+    // Base: software multiplication (load + multiply)
     start_base = neorv32_cpu_csr_read(CSR_CYCLE);
     for (int i = 0; i < n; i++) {
         product_base *= values[i];
@@ -51,11 +51,11 @@ void run_test(int n) {
     end_base = neorv32_cpu_csr_read(CSR_CYCLE);
     elapsed_base = end_base - start_base;
 
-    // ANNX: LWM pi (load + add fused)
+    // ANNX: LWM pi (load + multiply fused)
     // annx_lwm(base, rs2, word_offset) = MEM[base + word_offset<<2] * rs2
     // accumulate: product = annx_lwm(values, product, i) for each i
     start_annx = neorv32_cpu_csr_read(CSR_CYCLE);
-    product_annx = annx_lwm((uint32_t)values, 0, 0);
+    product_annx = annx_lwm((uint32_t)values, product_annx, 0);
     if (n >= 2)   product_annx = annx_lwm((uint32_t)values, product_annx, 1);
     if (n >= 3)   product_annx = annx_lwm((uint32_t)values, product_annx, 2);
     if (n >= 4)   product_annx = annx_lwm((uint32_t)values, product_annx, 3);

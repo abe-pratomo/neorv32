@@ -55,7 +55,7 @@ void run_test(int n) {
     // annx_lwa(base, rs2, word_offset) = MEM[base + word_offset<<2] + rs2
     // accumulate: sum = annx_lwa(values, sum, i) for each i
     start_annx = neorv32_cpu_csr_read(CSR_CYCLE);
-    sum_annx = annx_lwa((uint32_t)values, 0, 0);
+    sum_annx = annx_lwa((uint32_t)values, sum_annx, 0);
     if (n >= 2)   sum_annx = annx_lwa((uint32_t)values, sum_annx, 1);
     if (n >= 3)   sum_annx = annx_lwa((uint32_t)values, sum_annx, 2);
     if (n >= 4)   sum_annx = annx_lwa((uint32_t)values, sum_annx, 3);
