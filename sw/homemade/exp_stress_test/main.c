@@ -75,66 +75,52 @@ int32_t exp_pwl(int32_t x)
 
 void run_test(int n) {
 
-    uint32_t start_base, end_base, elapsed_base;
-    uint32_t start_annx, end_annx, elapsed_annx;
+    uint64_t start_base = 0, end_base = 0;
+    uint64_t start_annx = 0, end_annx = 0;
+    uint64_t elapsed_base = 0, elapsed_annx = 0;
 
-    int32_t  x;
+    int32_t x;
+    int32_t exp_base, exp_annx;
 
-    int32_t  exp_base[n];
-    int32_t  exp_annx[n];
-
-    // Base: software exponential function
-    start_base = neorv32_cpu_csr_read(CSR_CYCLE);
-    if (n == 1) {
-        x = 0;
-        exp_base[0] = exp_pwl(x);
-    } else {
-        for (int i = 0; i < n; i++) {
-            // evenly distribute between -MAX_ABS_INPUT and +MAX_ABS_INPUT
-            x = -MAX_ABS_INPUT +
-                (int32_t)(((int64_t)i * (2LL * MAX_ABS_INPUT)) / (n - 1));
-
-            exp_base[i] = exp_pwl(x);
-        }
-    }
-    end_base = neorv32_cpu_csr_read(CSR_CYCLE);
-    elapsed_base = end_base - start_base;
-
-    // ANNX: EXP
-    // annx_exp(rs1) = exp_pwl(rs1)
-    start_annx = neorv32_cpu_csr_read(CSR_CYCLE);
-    if (n == 1) {
-        x = 0;
-        exp_annx[0] = annx_exp(x);
-    } else {
-        for (int i = 0; i < n; i++) {
-            // evenly distribute between -MAX_ABS_INPUT and +MAX_ABS_INPUT
-            x = -MAX_ABS_INPUT +
-                (int32_t)(((int64_t)i * (2LL * MAX_ABS_INPUT)) / (n - 1));
-
-            exp_annx[i] = annx_exp(x);
-        }
-    }
-    end_annx = neorv32_cpu_csr_read(CSR_CYCLE);
-    elapsed_annx = end_annx - start_annx;
-
-    // Speedup as integer percentage
-    uint32_t speedup_pct = elapsed_base > elapsed_annx ?
-                           elapsed_base * 100 / elapsed_annx : 0;
+    int mismatch_count = 0;
 
     neorv32_uart0_printf("N=%d\n", n);
+
     for (int i = 0; i < n; i++) {
-        if (n == 1)
-            x = 0;
-        else
-            x = -MAX_ABS_INPUT + (int32_t)(((int64_t)i * (2LL * MAX_ABS_INPUT)) / (n - 1));
-        if (exp_base[i] != exp_annx[i]) {
-            neorv32_uart0_printf("  Mismatch at x="); print_q16(x);
-            neorv32_uart0_printf(": Base="); print_q16(exp_base[i]); neorv32_uart0_printf(", ANNX="); print_q16(exp_annx[i]); neorv32_uart0_printf("\n");
+        // evenly distribute between -MAX_ABS_INPUT and +MAX_ABS_INPUT
+        x = (n == 1) ? 0 : -MAX_ABS_INPUT + (int32_t)(((int64_t)i * (2LL * MAX_ABS_INPUT)) / (n - 1));
+
+        start_base = neorv32_cpu_csr_read(CSR_CYCLE);
+        exp_base   = exp_pwl(x);
+        end_base   = neorv32_cpu_csr_read(CSR_CYCLE);
+        
+        elapsed_base += (uint64_t)(end_base - start_base);
+
+        start_annx = neorv32_cpu_csr_read(CSR_CYCLE);
+        exp_annx   = annx_exp(x);
+        end_annx   = neorv32_cpu_csr_read(CSR_CYCLE);
+        
+        elapsed_annx += (uint64_t)(end_annx - start_annx);
+        
+        if (exp_base != exp_annx && mismatch_count < 10) {
+            neorv32_uart0_printf("  Mismatch at x=0x%x", (uint32_t)x);
+            neorv32_uart0_printf(": Base="); print_q16(exp_base);
+            neorv32_uart0_printf(", ANNX="); print_q16(exp_annx);
+            neorv32_uart0_printf("\n");
+            mismatch_count++;
         }
     }
-    neorv32_uart0_printf("  Cycles: base=%u, ANNX=%u\n", elapsed_base, elapsed_annx);
-    neorv32_uart0_printf("  Speedup: %u%%\n\n", speedup_pct);
+
+    // Speedup as fractional
+    uint32_t speedup_int  = (uint32_t)(elapsed_base / elapsed_annx);
+    uint32_t speedup_frac = (uint32_t)((elapsed_base * 1000ULL / elapsed_annx) % 1000);
+
+    neorv32_uart0_printf("  Mismatches: %d\n", mismatch_count);
+    neorv32_uart0_printf("  Cycles: base=%u, ANNX=%u\n", (uint32_t)elapsed_base, (uint32_t)elapsed_annx);
+    const char* dir = elapsed_base >= elapsed_annx ? "faster" : "slower";
+    if      (speedup_frac < 10)  neorv32_uart0_printf("  Speedup: %u.00%ux %s\n\n", speedup_int, speedup_frac, dir);
+    else if (speedup_frac < 100) neorv32_uart0_printf("  Speedup: %u.0%ux %s\n\n",  speedup_int, speedup_frac, dir);
+    else                         neorv32_uart0_printf("  Speedup: %u.%ux %s\n\n",   speedup_int, speedup_frac, dir);
 }
 
 int main(void) {
@@ -144,6 +130,7 @@ int main(void) {
     neorv32_uart0_printf("================ EXP Stress Test ================\n");
     neorv32_uart0_printf("=================================================\n\n");
 
+    // Power of 4s
     run_test(1);
     run_test(4);
     run_test(16);
@@ -155,7 +142,7 @@ int main(void) {
     run_test(65536);
     run_test(262144);
     run_test(1048576);
-    run_test(1408209);
+    run_test(1362782); // Max step from -10.3972015381 to 10.3972015381
 
     neorv32_uart0_printf("====================== Done =====================\n");
     neorv32_uart0_printf("=================================================\n\n");

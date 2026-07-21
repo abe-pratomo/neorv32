@@ -26,25 +26,26 @@ int32_t values[128] = {
 
 void run_test(int n) {
 
-    uint32_t start_base, end_base, elapsed_base;
-    uint32_t start_annx, end_annx, elapsed_annx;
+    uint64_t start_base = 0, end_base = 0;
+    uint64_t start_annx = 0, end_annx = 0;
+    uint64_t elapsed_base = 0, elapsed_annx = 0;
     int32_t  product_base   = TO_Q16(1);
     int32_t  product_annx   = TO_Q16(1);
 
     // Base: software multiplication (load + multiply)
-    start_base = neorv32_cpu_csr_read(CSR_CYCLE);
+    start_base = (uint32_t)neorv32_cpu_csr_read(CSR_CYCLE);
     for (int i = 0; i < n; i++) {
         int64_t tmp = (int64_t)product_base * values[i];
         product_base = (int32_t)(tmp >> 16);
     }
-    end_base = neorv32_cpu_csr_read(CSR_CYCLE);
+    end_base = (uint32_t)neorv32_cpu_csr_read(CSR_CYCLE);
     elapsed_base = end_base - start_base;
 
     // ANNX: LWM pi (load + multiply fused)
     // annx_lwm(base, rs2, word_offset) = MEM[base + word_offset<<2] * rs2
     // accumulate: product = annx_lwm(values, product, i) for each i
     uint32_t values_mid = (uint32_t)&values[64];
-    start_annx = neorv32_cpu_csr_read(CSR_CYCLE);
+    start_annx = (uint32_t)neorv32_cpu_csr_read(CSR_CYCLE);
     product_annx = annx_lwm(values_mid, product_annx, 64);
     if (n >= 2)   product_annx = annx_lwm(values_mid, product_annx, 65);
     if (n >= 3)   product_annx = annx_lwm(values_mid, product_annx, 66);
@@ -173,19 +174,22 @@ void run_test(int n) {
     if (n >= 126) product_annx = annx_lwm(values_mid, product_annx, 61);
     if (n >= 127) product_annx = annx_lwm(values_mid, product_annx, 62);
     if (n >= 128) product_annx = annx_lwm(values_mid, product_annx, 63);
-    end_annx = neorv32_cpu_csr_read(CSR_CYCLE);
+    end_annx = (uint32_t)neorv32_cpu_csr_read(CSR_CYCLE);
     elapsed_annx = end_annx - start_annx;
 
-    // Speedup as integer percentage
-    uint32_t speedup_pct = elapsed_base > elapsed_annx ?
-                           elapsed_base * 100 / elapsed_annx : 0;
+    // Speedup as fractional
+    uint32_t speedup_int  = (uint32_t)(elapsed_base / elapsed_annx);
+    uint32_t speedup_frac = (uint32_t)((elapsed_base * 1000ULL / elapsed_annx) % 1000);
 
     neorv32_uart0_printf("N=%d\n", n);
     neorv32_uart0_printf("  Base: product="); print_q16(product_base);
-    neorv32_uart0_printf(", cycles=%u\n", elapsed_base);
+    neorv32_uart0_printf(", cycles=%u\n", (uint32_t)elapsed_base);
     neorv32_uart0_printf("  ANNX: product="); print_q16(product_annx);
-    neorv32_uart0_printf(", cycles=%u\n", elapsed_annx);
-    neorv32_uart0_printf("  Speedup: %u%%\n\n", speedup_pct);
+    neorv32_uart0_printf(", cycles=%u\n", (uint32_t)elapsed_annx);
+    const char* dir = elapsed_base >= elapsed_annx ? "faster" : "slower";
+    if      (speedup_frac < 10)  neorv32_uart0_printf("  Speedup: %u.00%ux %s\n\n", speedup_int, speedup_frac, dir);
+    else if (speedup_frac < 100) neorv32_uart0_printf("  Speedup: %u.0%ux %s\n\n",  speedup_int, speedup_frac, dir);
+    else                         neorv32_uart0_printf("  Speedup: %u.%ux %s\n\n",   speedup_int, speedup_frac, dir);
 }
 
 int main(void) {
