@@ -111,16 +111,16 @@ void run_test(int n) {
         }
     }
 
-    // Speedup as integer percentage
-    uint32_t speedup_int  = (uint32_t)(elapsed_base / elapsed_annx);
-    uint32_t speedup_frac = (uint32_t)((elapsed_base * 1000ULL / elapsed_annx) % 1000);
+    // Speedup as fractional
+    uint64_t speedup_int  = elapsed_base / elapsed_annx;
+    uint64_t speedup_frac = (elapsed_base * 1000ULL / elapsed_annx) % 1000;
 
     neorv32_uart0_printf("  Mismatches: %d\n", mismatch_count);
     neorv32_uart0_printf("  Cycles: base=%u, ANNX=%u\n", (uint32_t)elapsed_base, (uint32_t)elapsed_annx);
     const char* dir = elapsed_base >= elapsed_annx ? "faster" : "slower";
-    if      (speedup_frac < 10)  neorv32_uart0_printf("  Speedup: %u.00%ux %s\n\n", speedup_int, speedup_frac, dir);
-    else if (speedup_frac < 100) neorv32_uart0_printf("  Speedup: %u.0%ux %s\n\n",  speedup_int, speedup_frac, dir);
-    else                         neorv32_uart0_printf("  Speedup: %u.%ux %s\n\n",   speedup_int, speedup_frac, dir);
+    if      (speedup_frac < 10)  neorv32_uart0_printf("  Speedup: %u.00%ux %s\n\n", (uint32_t)speedup_int, (uint32_t)speedup_frac, dir);
+    else if (speedup_frac < 100) neorv32_uart0_printf("  Speedup: %u.0%ux %s\n\n",  (uint32_t)speedup_int, (uint32_t)speedup_frac, dir);
+    else                         neorv32_uart0_printf("  Speedup: %u.%ux %s\n\n",   (uint32_t)speedup_int, (uint32_t)speedup_frac, dir);
 }
 
 int main(void) {
