@@ -209,6 +209,8 @@ int main(void) {
     run_test(5);
     run_test(10);
     run_test(50);
+    run_test(64); // Max positive word_offset (for debugging)
+    run_test(65); // Check if wrong
     run_test(100);
     run_test(128); // Max word_offset range (-64 to 63 = 128 words)
 
