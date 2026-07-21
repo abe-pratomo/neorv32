@@ -40,8 +40,8 @@ void run_test(int n) {
 
     uint32_t start_base, end_base, elapsed_base;
     uint32_t start_annx, end_annx, elapsed_annx;
-    int32_t  product_base = 0;
-    int32_t  product_annx = 0;
+    int32_t  product_base = 1;
+    int32_t  product_annx = 1;
 
     // Base: software addition (load + multiply)
     start_base = neorv32_cpu_csr_read(CSR_CYCLE);
