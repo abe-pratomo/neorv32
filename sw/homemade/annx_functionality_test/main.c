@@ -15,29 +15,29 @@ int main(void) {
     // Test data in local arrays (Q16.16 fixed-point)
     // -------------------------------------------------------------------------
     int32_t mem_a[] = {
-        TO_Q16(  3.50),      // +  +   normal
-        TO_Q16( 12.75),      // +  -
-        TO_Q16(-18.50),      // -  -
-        TO_Q16(-7.25),       // -  +
-        TO_Q16(100.125),     // +  +
-        TO_Q16(  0.625),     // +  -
-        TO_Q16(-55.875),     // -  -
-        TO_Q16(-1.50),       // -  +
-        TO_Q16(30000.0),     // positive overflow
-        TO_Q16(-30000.0)     // negative overflow
+        TO_Q16(     3.5  ), // +  +   normal
+        TO_Q16(    12.75 ), // +  -
+        TO_Q16(   -18.5  ), // -  -
+        TO_Q16(    -7.25 ), // -  +
+        TO_Q16(   100.125), // +  +
+        TO_Q16(     0.625), // +  -
+        TO_Q16(   -55.875), // -  -
+        TO_Q16(    -1.5  ), // -  +
+        TO_Q16( 32767    ), // positive overflow
+        TO_Q16(-32768    )  // negative overflow
     };
 
     int32_t mem_b[] = {
-        TO_Q16(  4.25),      // +  +
-        TO_Q16(-5.50),       // +  -
-        TO_Q16(-2.75),       // -  -
-        TO_Q16( 8.875),      // -  +
-        TO_Q16( 2.50),       // +  +
-        TO_Q16(-7.125),      // +  -
-        TO_Q16(-0.50),       // -  -
-        TO_Q16(15.75),       // -  +
-        TO_Q16( 3.00),       // positive overflow
-        TO_Q16( 3.00)        // negative overflow
+        TO_Q16(  4.25 ),    // +  +
+        TO_Q16( -5.5  ),    // +  -
+        TO_Q16( -2.75 ),    // -  -
+        TO_Q16(  8.875),    // -  +
+        TO_Q16(  2.5  ),    // +  +
+        TO_Q16( -7.125),    // +  -
+        TO_Q16( -0.5  ),    // -  -
+        TO_Q16( 15.75 ),    // -  +
+        TO_Q16(  2    ),    // positive overflow
+        TO_Q16( -2    )     // negative overflow
     };
 
     int32_t result;
