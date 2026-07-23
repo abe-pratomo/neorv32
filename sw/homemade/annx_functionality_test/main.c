@@ -15,25 +15,29 @@ int main(void) {
     // Test data in local arrays (Q16.16 fixed-point)
     // -------------------------------------------------------------------------
     int32_t mem_a[] = {
-        TO_Q16( 3),    // 3.0
-        TO_Q16(-17),   // -17.0
-        TO_Q16( 45),   // 45.0
-        TO_Q16(-128),  // -128.0
-        TO_Q16( 256),  // 256.0
-        TO_Q16(-73),   // -73.0
-        TO_Q16( 11),   // 11.0
-        TO_Q16(-200)   // -200.0
+        TO_Q16(  3.50),      // +  +   normal
+        TO_Q16( 12.75),      // +  -
+        TO_Q16(-18.50),      // -  -
+        TO_Q16(-7.25),       // -  +
+        TO_Q16(100.125),     // +  +
+        TO_Q16(  0.625),     // +  -
+        TO_Q16(-55.875),     // -  -
+        TO_Q16(-1.50),       // -  +
+        TO_Q16(30000.0),     // positive overflow
+        TO_Q16(-30000.0)     // negative overflow
     };
 
     int32_t mem_b[] = {
-        TO_Q16( 7),    // 7.0
-        TO_Q16( 23),   // 23.0
-        TO_Q16(-60),   // -60.0
-        TO_Q16( 99),   // 99.0
-        TO_Q16(-150),  // -150.0
-        TO_Q16( 34),   // 34.0
-        TO_Q16(-88),   // -88.0
-        TO_Q16(-175)   // -175.0
+        TO_Q16(  4.25),      // +  +
+        TO_Q16(-5.50),       // +  -
+        TO_Q16(-2.75),       // -  -
+        TO_Q16( 8.875),      // -  +
+        TO_Q16( 2.50),       // +  +
+        TO_Q16(-7.125),      // +  -
+        TO_Q16(-0.50),       // -  -
+        TO_Q16(15.75),       // -  +
+        TO_Q16( 3.00),       // positive overflow
+        TO_Q16( 3.00)        // negative overflow
     };
 
     int32_t result;
@@ -67,6 +71,12 @@ int main(void) {
     result = annx_lwa((uint32_t)mem_a, mem_b[7], 7);
     neorv32_uart0_printf("[7]  "); print_q16(mem_a[7]); neorv32_uart0_printf("  +  "); print_q16(mem_b[7]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
+    result = annx_lwa((uint32_t)mem_a, mem_b[8], 8);
+    neorv32_uart0_printf("[8]  "); print_q16(mem_a[8]); neorv32_uart0_printf("  +  "); print_q16(mem_b[8]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
+
+    result = annx_lwa((uint32_t)mem_a, mem_b[9], 9);
+    neorv32_uart0_printf("[9]  "); print_q16(mem_a[9]); neorv32_uart0_printf("  +  "); print_q16(mem_b[9]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
+
     neorv32_uart0_printf("\n");
 
     // -------------------------------------------------------------------------
@@ -97,6 +107,12 @@ int main(void) {
 
     result = annx_lwm((uint32_t)mem_a, mem_b[7], 7);
     neorv32_uart0_printf("[7]  "); print_q16(mem_a[7]); neorv32_uart0_printf("  x  "); print_q16(mem_b[7]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
+
+    result = annx_lwm((uint32_t)mem_a, mem_b[8], 8);
+    neorv32_uart0_printf("[8]  "); print_q16(mem_a[8]); neorv32_uart0_printf("  x  "); print_q16(mem_b[8]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
+
+    result = annx_lwm((uint32_t)mem_a, mem_b[9], 9);
+    neorv32_uart0_printf("[9]  "); print_q16(mem_a[9]); neorv32_uart0_printf("  x  "); print_q16(mem_b[9]); neorv32_uart0_printf("  =  "); print_q16(result); neorv32_uart0_printf("\n");
 
     neorv32_uart0_printf("\n");
 
