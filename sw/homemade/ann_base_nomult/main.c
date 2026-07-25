@@ -73,7 +73,6 @@ int32_t exp_pwl(int32_t x)
 
 // ============================================================
 // sigmoid_q16: sigma(x) = exp(x) / (1 + exp(x)) in Q16.16
-// Requires M extension for division
 // ============================================================
 int32_t sigmoid_q16(int32_t x)
 {
@@ -86,6 +85,8 @@ int32_t sigmoid_q16(int32_t x)
 // ============================================================
 // ANN Specifications
 // ============================================================
+#define input_select    0 // 0 = Mie Goreng, 1 = Sayur Asem, 2 = Pecel, 3 = Nasi Goreng, 4 = Tahu Campur, 5 = Dendeng
+
 #define input_layer     4
 
 #define h1_neuron       5
@@ -93,57 +94,63 @@ int32_t sigmoid_q16(int32_t x)
 #define o_neuron        2
 
 #define bias_count      1
-#define bias_multiplier 0x10000
-
-#define l1_inputs       (input_layer    + bias_count)
-#define l2_inputs       (h1_neuron      + bias_count)
-#define l3_inputs       (h2_neuron      + bias_count)
 
 // Inputs (ASAM, MANIS, ASIN, PEDAS, ranging from 0-1)
-int32_t inputs[l1_inputs] = {
-    // 13107, 52428, 45875, 19660, 65536  // Mie Goreng  - Expected: Tasty
-    // 65536, 13107, 19660, 19660, 65536  // Sayur Asem  - Expected: Not Tasty
-    // 39321, 39321, 19660, 52428, 65536  // Pecel       - Expected: Not Tasty
-    // 19660, 52428, 19660, 32768, 65536  // Nasi Goreng - Expected: Tasty
-    // 39321, 58982, 32768, 39321, 65536  // Tahu Campur - Expected: Tasty
-    19660, 13107, 39321, 65536, 65536  // Dendeng     - Expected: Not Tasty
+int32_t inputs[6][input_layer] = {
+    {13107, 52428, 45875, 19660},  // Mie Goreng  - Expected: Tasty
+    {65536, 13107, 19660, 19660},  // Sayur Asem  - Expected: Not Tasty
+    {39321, 39321, 19660, 52428},  // Pecel       - Expected: Not Tasty
+    {19660, 52428, 19660, 32768},  // Nasi Goreng - Expected: Tasty
+    {39321, 58982, 32768, 39321},  // Tahu Campur - Expected: Tasty
+    {19660, 13107, 39321, 65536},  // Dendeng     - Expected: Not Tasty
 };
 
-// Hidden layer 1
-int32_t h1_weights[l1_inputs][h1_neuron] = {
-    { -95077, -18761,   66946,  162212, -54345},    // W1 row 1
-    { 196632, -39271, -145054, -262395, 103757},    // W1 row 2
-    {  65621, -44711,  -60594,  -84996,   -604},    // W1 row 3
-    {-110763,  51870,  149020,  159926, -65649},    // W1 row 4
-    { -29561, -34029,  -21527,   15558,  17376}     // b1
+// Hidden layer 1 weights
+int32_t h1_weights[h1_neuron][input_layer] = {
+    { -95077,  196632,   65621, -110763},   // neuron 0
+    { -18761,  -39271,  -44711,   51870},   // neuron 1
+    {  66946, -145054,  -60594,  149020},   // neuron 2
+    { 162212, -262395,  -84996,  159926},   // neuron 3
+    { -54345,  103757,    -604,  -65649}    // neuron 4
 };
 
-int32_t h1_outputs[l2_inputs] = {
-    0, 0, 0, 0, 0, bias_multiplier
+// Hidden layer 1 biases
+int32_t h1_biases[h1_neuron] = {
+    -29561, -34029, -21527, 15558, 17376
 };
 
-// Hidden layer 2 weights (5 neurons, 5 inputs + bias)
-int32_t h2_weights[l2_inputs][h2_neuron] = {
-    {  78372, -242129, -63311,  100652,   44358},   // W2 row 1
-    { -17407,   17312, -24329,  -56535,  -24475},   // W2 row 2
-    { -67159,  187036,  28451,  -47128,  -68997},   // W2 row 3
-    {-192478,  248645,  33987, -150446, -121661},   // W2 row 4
-    {  63144,  -80859, -74799,   61123,   88419},   // W2 row 5
-    {  43618,  -31781,  40982,   14507,   13483}    // b2
+// Hidden layer 1 outputs
+int32_t h1_outputs[h1_neuron] = {
+    0, 0, 0, 0
 };
 
-int32_t h2_outputs[l3_inputs] = {
-    0, 0, 0, 0, 0, bias_multiplier
+// Hidden layer 2 weights
+int32_t h2_weights[h2_neuron][h1_neuron] = {
+    {  78372,  -17407,  -67159, -192478,  63144},   // neuron 0
+    {-242129,   17312,  187036,  248645, -80859},   // neuron 1
+    { -63311,  -24329,   28451,   33987, -74799},   // neuron 2
+    { 100652,  -56535,  -47128, -150446,  61123},   // neuron 3
+    {  44358,  -24475,  -68997, -121661,  88419}    // neuron 4
 };
 
-// Output layer weights (2 neurons, 5 inputs + bias)
-int32_t o_weights[l3_inputs][o_neuron] = {
-    { 144148, -177383}, // W3 row 1
-    {-320594,  335431}, // W3 row 2
-    {-103031,    9901}, // W3 row 3
-    { 138344, -148999}, // W3 row 4
-    { 128838,  -97330}, // W3 row 5
-    {  20998,   18766}  // b3
+// Hidden layer 2 biases
+int32_t h2_biases[h2_neuron] = {
+    43618, -31781, 40982, 14507, 13483
+};
+
+// Hidden layer 2 outputs
+int32_t h2_outputs[h2_neuron] = {
+    0, 0, 0, 0
+};
+
+// Output layer weights
+int32_t o_weights[o_neuron][h2_neuron] = {
+    { 144148, -320594, -103031,  138344,  128838},  // output 0 (Tastiness)
+    {-177383,  335431,    9901, -148999,  -97330}   // output 1 (Untastiness)
+};
+
+int32_t o_biases[o_neuron] = {
+    20998, 18766
 };
 
 int32_t outputs[o_neuron];
@@ -163,10 +170,10 @@ int main() {
 
     // Print taste values
     neorv32_uart0_printf("Input Taste Values:\n");
-    neorv32_uart0_printf("Sourness : "); print_q16(inputs[0]); neorv32_uart0_printf("\n");
-    neorv32_uart0_printf("Sweetness: "); print_q16(inputs[1]); neorv32_uart0_printf("\n");
-    neorv32_uart0_printf("Saltiness: "); print_q16(inputs[2]); neorv32_uart0_printf("\n");
-    neorv32_uart0_printf("Spiciness: "); print_q16(inputs[3]); neorv32_uart0_printf("\n");
+    neorv32_uart0_printf("Sourness : "); print_q16(inputs[input_select][0]); neorv32_uart0_printf("\n");
+    neorv32_uart0_printf("Sweetness: "); print_q16(inputs[input_select][1]); neorv32_uart0_printf("\n");
+    neorv32_uart0_printf("Saltiness: "); print_q16(inputs[input_select][2]); neorv32_uart0_printf("\n");
+    neorv32_uart0_printf("Spiciness: "); print_q16(inputs[input_select][3]); neorv32_uart0_printf("\n");
 
     // Start calculation
     uint32_t start_time = neorv32_cpu_csr_read(CSR_CYCLE);
@@ -174,27 +181,33 @@ int main() {
     // Hidden Layer 1 computation
     for (int i = 0; i < h1_neuron; i++) {
         int64_t sum = 0;
-        for (int j = 0; j < l1_inputs; j++) {
-            sum += ((int64_t)inputs[j] * (int64_t)h1_weights[j][i]) >> FRAC_WIDTH;
+        for (int j = 0; j < input_layer; j++) {
+            sum += ((int64_t)inputs[input_select][j] * (int64_t)h1_weights[i][j]) >> FRAC_WIDTH;
         }
+        sum += h1_biases[i];
+
         h1_outputs[i] = sigmoid_q16((int32_t)sum);
     }
 
     // Hidden Layer 2 computation
     for (int i = 0; i < h2_neuron; i++) {
         int64_t sum = 0;
-        for (int j = 0; j < l2_inputs; j++) {
-            sum += ((int64_t)h1_outputs[j] * (int64_t)h2_weights[j][i]) >> FRAC_WIDTH;
+        for (int j = 0; j < h1_neuron; j++) {
+            sum += ((int64_t)h1_outputs[j] * (int64_t)h2_weights[i][j]) >> FRAC_WIDTH;
         }
+        sum += h2_biases[i];
+
         h2_outputs[i] = sigmoid_q16((int32_t)sum);
     }
 
     // Output Layer computation
     for (int i = 0; i < o_neuron; i++) {
         int64_t sum = 0;
-        for (int j = 0; j < l3_inputs; j++) {
-            sum += ((int64_t)h2_outputs[j] * (int64_t)o_weights[j][i]) >> FRAC_WIDTH;
+        for (int j = 0; j < h2_neuron; j++) {
+            sum += ((int64_t)h2_outputs[j] * (int64_t)o_weights[i][j]) >> FRAC_WIDTH;
         }
+        sum += o_biases[i];
+
         outputs[i] = sigmoid_q16((int32_t)sum);
     }
 
