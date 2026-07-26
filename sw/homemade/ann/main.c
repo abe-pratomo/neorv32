@@ -167,28 +167,35 @@ int32_t outputs_base[o_neuron];
 
 int32_t outputs_annx[o_neuron];
 
+// Simple space-padding helper — since neorv32_uart0_printf likely has no %-Ns support
+void print_padded(const char *s, int width) {
+    neorv32_uart0_printf("%s", s);
+    int len = 0;
+    while (s[len] != '\0') len++;
+    for (int i = len; i < width; i++) {
+        neorv32_uart0_printf(" ");
+    }
+}
+
 int main() {
     // Initialize UART at 19200 baud
     if (!neorv32_uart0_available()) return -1;
     neorv32_uart0_setup(BAUD_RATE, 0);
 
     // Print banner
-    neorv32_uart0_printf("================ NEORV32 ANN Example ===============\n");
-    neorv32_uart0_printf("=== ANN for Indonesian Food Preference Detection ===\n");
-    neorv32_uart0_printf("====================================================\n\n");
+    neorv32_uart0_printf("===================== NEORV32 ANN Example ====================\n");
+    neorv32_uart0_printf("======== ANN for Indonesian Food Preference Detection ========\n");
+    neorv32_uart0_printf("==============================================================\n\n");
+
+    const char *food_names[6] = {
+        "Mie Goreng", "Sayur Asem", "Pecel", "Nasi Goreng", "Tahu Campur", "Dendeng"
+    };
+    uint32_t tasty_expected[6] = {1, 0, 0, 1, 1, 0};
+
+    neorv32_uart0_printf("Food        Exp       Base      Cycles ANNX      Cycles Status\n");
+    neorv32_uart0_printf("--------------------------------------------------------------\n");
 
     for (int input_select = 0; input_select < 6; input_select++) {
-        // Print food
-        neorv32_uart0_printf("Food: ");
-        switch (input_select) {
-            case 0: neorv32_uart0_printf("Mie Goreng;  EXPECTED: Tasty    :\n"); break;
-            case 1: neorv32_uart0_printf("Sayur Asem;  EXPECTED: Not Tasty:\n"); break;
-            case 2: neorv32_uart0_printf("Pecel;       EXPECTED: Not Tasty:\n"); break;
-            case 3: neorv32_uart0_printf("Nasi Goreng; EXPECTED: Tasty    :\n"); break;
-            case 4: neorv32_uart0_printf("Tahu Campur; EXPECTED: Tasty    :\n"); break;
-            case 5: neorv32_uart0_printf("Dendeng;     EXPECTED: Not Tasty:\n"); break;
-        }
-
         // Start calculation
         uint32_t start_time_base = neorv32_cpu_csr_read(CSR_CYCLE);
 
@@ -359,21 +366,26 @@ int main() {
         uint32_t elapsed_cycle_annx = end_time_annx - start_time_annx;
 
         // Print results
-        neorv32_uart0_printf("  Base:\n    ");
-        for (int i = 0; i < o_neuron; i++) {
-            neorv32_uart0_printf("%s: ", i ? "Untastiness" : "Tastiness  "); print_q16(outputs_base[i]); neorv32_uart0_printf("; ");
-        }
-        neorv32_uart0_printf("%s; ", (outputs_base[0] > outputs_base[1]) ? "Tasty    " : "Not Tasty"); neorv32_uart0_printf("Elapsed Time: %u cycles\n", elapsed_cycle_base);
+        uint32_t tasty_base = (outputs_base[0] > outputs_base[1]);
+        uint32_t tasty_annx = (outputs_annx[0] > outputs_annx[1]);
+        const char *base_str = tasty_base ? "Tasty" : "Not Tasty";
+        const char *annx_str = tasty_annx ? "Tasty" : "Not Tasty";
+        const char *status = (tasty_base == tasty_expected[input_select] &&
+                            tasty_annx == tasty_expected[input_select]) ? "OK" : "MISMATCH";
 
-        neorv32_uart0_printf("  ANNX:\n    ");
-        for (int i = 0; i < o_neuron; i++) {
-            neorv32_uart0_printf("%s: ", i ? "Untastiness" : "Tastiness  "); print_q16(outputs_base[i]); neorv32_uart0_printf("; ");
-        }
-        neorv32_uart0_printf("%s; ", (outputs_annx[0] > outputs_annx[1]) ? "Tasty    " : "Not Tasty"); neorv32_uart0_printf("Elapsed Time: %u cycles\n", elapsed_cycle_annx);
+        print_padded(food_names[input_select], 12);
+        print_padded(tasty_expected[input_select] ? "Tasty" : "Not Tasty", 10);
+        print_padded(base_str, 10);
+        neorv32_uart0_printf("%u", elapsed_cycle_base);
+        print_padded("", 2);
+        print_padded(annx_str, 10);
+        neorv32_uart0_printf("%u", elapsed_cycle_annx);
+        print_padded("", 3);
+        neorv32_uart0_printf("%s\n", status);
     }
 
     // Finish execution
-    neorv32_uart0_printf("\n===================== THE END ======================\n");
-    neorv32_uart0_printf("====================================================\n\n");
+    neorv32_uart0_printf("\n=========================== THE END ==========================\n");
+    neorv32_uart0_printf("==============================================================\n\n");
     return 0;
 }
